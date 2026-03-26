@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Personalizaciones - Anjos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3><i class="bi bi-palette"></i> Personalizaciones</h3>
+    <a href="{% url 'customization_create_form' %}" class="btn btn-dark"><i class="bi bi-plus"></i> Nueva</a>
+</div>
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+            <thead class="table-dark"><tr><th>#</th><th>Tipo de joya</th><th>Diseño</th><th>Estado</th><th>Precio est.</th><th>Fecha</th><th>Acciones</th></tr></thead>
+            <tbody>
+                {% for c in customizations %}
+                <tr>
+                    <td>{{ c.id }}</td>
+                    <td>{{ c.jewelry_type }}</td>
+                    <td>{{ c.design|truncatewords:6 }}</td>
+                    <td><span class="badge bg-secondary">{{ c.status }}</span></td>
+                    <td>{% if c.estimated_price %}${{ c.estimated_price }}{% else %}-{% endif %}</td>
+                    <td>{{ c.created_at|date:"d/m/Y" }}</td>
+                    <td>
+                        <a href="{% url 'customization_show' pk=c.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                        <a href="{% url 'customization_edit_form' pk=c.id %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                    </td>
+                </tr>
+                {% empty %}<tr><td colspan="7" class="text-center py-4">No hay personalizaciones</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Editar Categoría - Anjos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Editar Categoría</h3>
+    <a href="{% url 'category_index' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+<div class="card shadow-sm col-md-6">
+    <div class="card-body">
+        <form method="post" action="{% url 'category_update' pk=category.id %}">
+            {% csrf_token %}
+            <div class="mb-3"><label class="form-label">Nombre *</label><input type="text" name="name" class="form-control" value="{{ category.name }}" required></div>
+            <div class="mb-3"><label class="form-label">Descripción</label><textarea name="description" class="form-control" rows="3">{{ category.description|default:'' }}</textarea></div>
+            <div class="mb-3"><label class="form-label">URL imagen</label><input type="text" name="image" class="form-control" value="{{ category.image|default:'' }}"></div>
+            <div class="mb-3 form-check"><input type="checkbox" name="is_active" value="true" class="form-check-input" {% if category.is_active %}checked{% endif %}><label class="form-check-label">Activa</label></div>
+            <button type="submit" class="btn btn-dark">Actualizar</button>
+            <a href="{% url 'category_index' %}" class="btn btn-outline-secondary ms-2">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

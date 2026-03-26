@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Reparaciones - Anjos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3><i class="bi bi-tools"></i> Reparaciones</h3>
+    <a href="{% url 'repair_create_form' %}" class="btn btn-dark"><i class="bi bi-plus"></i> Nueva solicitud</a>
+</div>
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+            <thead class="table-dark"><tr><th>N°</th><th>Cliente</th><th>Descripción</th><th>Estado</th><th>Técnico</th><th>Fecha</th><th>Acciones</th></tr></thead>
+            <tbody>
+                {% for r in repairs %}
+                <tr>
+                    <td>{{ r.repair_number }}</td>
+                    <td>{{ r.customer_name }}</td>
+                    <td>{{ r.description|truncatewords:8 }}</td>
+                    <td><span class="badge bg-secondary">{{ r.status }}</span></td>
+                    <td>{{ r.assigned_technician_name|default:'-' }}</td>
+                    <td>{{ r.created_at|date:"d/m/Y" }}</td>
+                    <td>
+                        <a href="{% url 'repair_show' pk=r.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                        {% if user.is_admin %}
+                        <a href="{% url 'repair_edit_form' pk=r.id %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}<tr><td colspan="7" class="text-center py-4">No hay reparaciones</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

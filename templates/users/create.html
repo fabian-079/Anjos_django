@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Nuevo Usuario - Anjos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Nuevo Usuario</h3>
+    <a href="{% url 'user_index' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+<div class="card shadow-sm col-md-6">
+    <div class="card-body">
+        <form method="post" action="{% url 'user_create' %}">
+            {% csrf_token %}
+            <div class="mb-3"><label class="form-label">Nombre *</label><input type="text" name="name" class="form-control" required></div>
+            <div class="mb-3"><label class="form-label">Email *</label><input type="email" name="email" class="form-control" required></div>
+            <div class="mb-3"><label class="form-label">Contraseña *</label><input type="password" name="password" class="form-control" required minlength="6"></div>
+            <div class="mb-3"><label class="form-label">Teléfono</label><input type="text" name="phone" class="form-control"></div>
+            <div class="mb-3"><label class="form-label">Dirección</label><input type="text" name="address" class="form-control"></div>
+            <div class="mb-3">
+                <label class="form-label">Rol</label>
+                <select name="role" class="form-select">
+                    {% for role in roles %}<option value="{{ role.name }}">{{ role.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-dark">Guardar</button>
+            <a href="{% url 'user_index' %}" class="btn btn-outline-secondary ms-2">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

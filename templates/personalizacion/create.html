@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Nueva Personalización - Anjos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Nueva Personalización</h3>
+    <a href="{% url 'customization_index' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+<div class="card shadow-sm col-md-8">
+    <div class="card-body">
+        <form method="post" action="{% url 'customization_create' %}">
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Tipo de joya *</label><input type="text" name="jewelry_type" class="form-control" required placeholder="Ej: Anillo, Collar, Pulsera"></div>
+                <div class="col-md-6"><label class="form-label">Diseño *</label><input type="text" name="design" class="form-control" required placeholder="Descripción del diseño"></div>
+                <div class="col-md-6"><label class="form-label">Material *</label><input type="text" name="material" class="form-control" required placeholder="Oro, Plata, etc."></div>
+                <div class="col-md-6"><label class="form-label">Color *</label><input type="text" name="color" class="form-control" required></div>
+                <div class="col-md-6"><label class="form-label">Acabado *</label><input type="text" name="finish" class="form-control" required placeholder="Brillante, Mate, etc."></div>
+                <div class="col-md-6"><label class="form-label">Piedras *</label><input type="text" name="stones" class="form-control" required placeholder="Sin piedras, Diamante, etc."></div>
+                <div class="col-md-6"><label class="form-label">Talla/Tamaño</label><input type="text" name="size" class="form-control"></div>
+                <div class="col-md-6"><label class="form-label">Grabado</label><input type="text" name="engraving" class="form-control" placeholder="Texto a grabar (opcional)"></div>
+                <div class="col-12"><label class="form-label">Instrucciones especiales</label><textarea name="special_instructions" class="form-control" rows="3"></textarea></div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-dark">Enviar solicitud</button>
+                <a href="{% url 'customization_index' %}" class="btn btn-outline-secondary ms-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

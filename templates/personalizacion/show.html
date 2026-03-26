@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Personalización #{{ customization.id }} - Anjos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3><i class="bi bi-palette"></i> Personalización #{{ customization.id }}</h3>
+    <div>
+        <a href="{% url 'customization_index' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+        {% if can_edit %}
+        <a href="{% url 'customization_edit_form' pk=customization.id %}" class="btn btn-outline-primary ms-2"><i class="bi bi-pencil"></i> Editar</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm col-md-10">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Tipo de joya</dt>
+            <dd class="col-sm-9">{{ customization.jewelry_type|default:"-" }}</dd>
+
+            <dt class="col-sm-3">Diseño</dt>
+            <dd class="col-sm-9">{{ customization.design|default:"-" }}</dd>
+
+            <dt class="col-sm-3">Material</dt>
+            <dd class="col-sm-9">{{ customization.material|default:"-" }}</dd>
+
+            <dt class="col-sm-3">Color</dt>
+            <dd class="col-sm-9">{{ customization.color|default:"-" }}</dd>
+
+            <dt class="col-sm-3">Acabado</dt>
+            <dd class="col-sm-9">{{ customization.finish|default:"-" }}</dd>
+
+            <dt class="col-sm-3">Piedras</dt>
+            <dd class="col-sm-9">{{ customization.stones|default:"-" }}</dd>
+
+            {% if customization.size %}
+            <dt class="col-sm-3">Talla/Tamaño</dt>
+            <dd class="col-sm-9">{{ customization.size }}</dd>
+            {% endif %}
+
+            {% if customization.engraving %}
+            <dt class="col-sm-3">Grabado</dt>
+            <dd class="col-sm-9">{{ customization.engraving }}</dd>
+            {% endif %}
+
+            <dt class="col-sm-3">Estado</dt>
+            <dd class="col-sm-9">
+                <span class="badge bg-{% if customization.status == 'completed' %}success{% elif customization.status == 'in_progress' %}warning text-dark{% elif customization.status == 'cancelled' %}secondary{% else %}info{% endif %}">
+                    {{ customization.status }}
+                </span>
+            </dd>
+
+            {% if customization.estimated_price %}
+            <dt class="col-sm-3">Precio estimado</dt>
+            <dd class="col-sm-9">${{ customization.estimated_price }}</dd>
+            {% endif %}
+
+            <dt class="col-sm-3">Fecha</dt>
+            <dd class="col-sm-9">{{ customization.created_at|date:"d/m/Y H:i" }}</dd>
+
+            {% if customization.special_instructions %}
+            <dt class="col-sm-3">Instrucciones especiales</dt>
+            <dd class="col-sm-9" style="white-space: pre-wrap;">{{ customization.special_instructions }}</dd>
+            {% endif %}
+
+            {% if user.is_admin and customization.admin_notes %}
+            <dt class="col-sm-3">Notas del admin</dt>
+            <dd class="col-sm-9" style="white-space: pre-wrap;">{{ customization.admin_notes }}</dd>
+            {% endif %}
+        </dl>
+    </div>
+</div>
+{% endblock %}

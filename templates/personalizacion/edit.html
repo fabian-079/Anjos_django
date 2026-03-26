@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Editar Personalización #{{ customization.id }} - Anjos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Editar Personalización #{{ customization.id }}</h3>
+    <a href="{% url 'customization_show' pk=customization.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+<div class="card shadow-sm col-md-8">
+    <div class="card-body">
+        <form method="post" action="{% url 'customization_update' pk=customization.id %}">
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Tipo de joya *</label>
+                    <select name="jewelry_type" class="form-select" required>
+                        <option value="">Seleccionar</option>
+                        {% for opt in "Anillo,Collar,Pulsera,Aretes,Reloj".split:"," %}
+                        <option value="{{ opt }}" {% if customization.jewelry_type == opt %}selected{% endif %}>{{ opt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Diseño *</label>
+                    <input type="text" name="design" class="form-control" required value="{{ customization.design|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Material *</label>
+                    <select name="material" class="form-select" required>
+                        <option value="">Seleccionar material</option>
+                        {% for opt in "Oro,Plata,Platino,Acero Inoxidable,Oro Blanco,Oro Rosa,Oro Amarillo,Titanio,Otro".split:"," %}
+                        <option value="{{ opt }}" {% if customization.material == opt %}selected{% endif %}>{{ opt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Color *</label>
+                    <select name="color" class="form-select" required>
+                        <option value="">Seleccionar color</option>
+                        {% for opt in "Dorado,Plateado,Rosa,Blanco,Negro,Multicolor,Otro".split:"," %}
+                        <option value="{{ opt }}" {% if customization.color == opt %}selected{% endif %}>{{ opt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Acabado *</label>
+                    <select name="finish" class="form-select" required>
+                        <option value="">Seleccionar acabado</option>
+                        {% for opt in "Brillante,Mate,Satinado,Pulido,Texturizado,Otro".split:"," %}
+                        <option value="{{ opt }}" {% if customization.finish == opt %}selected{% endif %}>{{ opt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Piedras *</label>
+                    <select name="stones" class="form-select" required>
+                        <option value="">Seleccionar piedras</option>
+                        {% for opt in "Sin piedras,Diamante,Rubí,Zafiro,Esmeralda,Perla,Amatista,Topacio,Cuarzo,Cristal,Circonita,Mixto,Otro".split:"," %}
+                        <option value="{{ opt }}" {% if customization.stones == opt %}selected{% endif %}>{{ opt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Talla/Tamaño</label>
+                    <input type="text" name="size" class="form-control" value="{{ customization.size|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Grabado</label>
+                    <input type="text" name="engraving" class="form-control" value="{{ customization.engraving|default:'' }}">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Instrucciones especiales</label>
+                    <textarea name="special_instructions" class="form-control" rows="3">{{ customization.special_instructions|default:'' }}</textarea>
+                </div>
+                {% if user.is_admin %}
+                <div class="col-md-6">
+                    <label class="form-label">Estado *</label>
+                    <select name="status" class="form-select" required>
+                        <option value="pending" {% if customization.status == 'pending' %}selected{% endif %}>Pendiente</option>
+                        <option value="in_progress" {% if customization.status == 'in_progress' %}selected{% endif %}>En Proceso</option>
+                        <option value="completed" {% if customization.status == 'completed' %}selected{% endif %}>Completada</option>
+                        <option value="cancelled" {% if customization.status == 'cancelled' %}selected{% endif %}>Cancelada</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Precio estimado</label>
+                    <input type="number" name="estimated_price" class="form-control" step="0.01" min="0" value="{{ customization.estimated_price|default:'' }}">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Notas del administrador</label>
+                    <textarea name="admin_notes" class="form-control" rows="3">{{ customization.admin_notes|default:'' }}</textarea>
+                </div>
+                {% endif %}
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-dark"><i class="bi bi-save"></i> Guardar cambios</button>
+                <a href="{% url 'customization_show' pk=customization.id %}" class="btn btn-outline-secondary ms-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

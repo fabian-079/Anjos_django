@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Mi cuenta - Anjos{% endblock %}
+{% block content %}
+<h2 class="mb-4">Bienvenido, {{ user.name }}</h2>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-dark shadow h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-cart-check fs-1"></i>
+                <h5 class="mt-2">Mis Órdenes</h5>
+                <h3>{{ orders|length }}</h3>
+                <a href="{% url 'order_index' %}" class="btn btn-outline-light btn-sm mt-2">Ver órdenes</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning shadow h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-tools fs-1"></i>
+                <h5 class="mt-2">Reparaciones</h5>
+                <h3>{{ repairs|length }}</h3>
+                <a href="{% url 'repair_index' %}" class="btn btn-dark btn-sm mt-2">Ver reparaciones</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info shadow h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-palette fs-1"></i>
+                <h5 class="mt-2">Personalizaciones</h5>
+                <h3>{{ customizations|length }}</h3>
+                <a href="{% url 'customization_index' %}" class="btn btn-dark btn-sm mt-2">Ver personalizaciones</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mt-2">
+    <a href="{% url 'catalogo' %}" class="btn btn-dark"><i class="bi bi-gem"></i> Ver catálogo</a>
+    <a href="{% url 'carrito' %}" class="btn btn-outline-dark"><i class="bi bi-cart3"></i> Mi carrito</a>
+    <a href="{% url 'favoritos' %}" class="btn btn-outline-danger"><i class="bi bi-heart"></i> Favoritos</a>
+    <a href="{% url 'repair_create_form' %}" class="btn btn-outline-warning"><i class="bi bi-tools"></i> Nueva reparación</a>
+    <a href="{% url 'customization_create_form' %}" class="btn btn-outline-info"><i class="bi bi-palette"></i> Nueva personalización</a>
+    <a href="{% url 'notification_index' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-bell"></i> Notificaciones
+        {% if unread_notifications > 0 %}<span class="badge bg-danger">{{ unread_notifications }}</span>{% endif %}
+    </a>
+</div>
+{% endblock %}

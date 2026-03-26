@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Editar Producto - Anjos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Editar Producto</h3>
+    <a href="{% url 'product_index' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="post" action="{% url 'product_update' pk=product.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Nombre *</label>
+                    <input type="text" name="name" class="form-control" value="{{ product.name }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Categoría *</label>
+                    <select name="category_id" class="form-select" required>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if cat.id == product.category_id %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Descripción *</label>
+                    <textarea name="description" class="form-control" rows="3" required>{{ product.description }}</textarea>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Precio *</label>
+                    <input type="number" name="price" class="form-control" step="0.01" value="{{ product.price }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Stock</label>
+                    <input type="number" name="stock" class="form-control" value="{{ product.stock }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Material</label>
+                    <input type="text" name="material" class="form-control" value="{{ product.material|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Color</label>
+                    <input type="text" name="color" class="form-control" value="{{ product.color|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Acabado</label>
+                    <input type="text" name="finish" class="form-control" value="{{ product.finish|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Piedras</label>
+                    <input type="text" name="stones" class="form-control" value="{{ product.stones|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Talla/Tamaño</label>
+                    <input type="text" name="size" class="form-control" value="{{ product.size|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">URL de imagen</label>
+                    <input type="text" name="image" class="form-control" value="{{ product.image|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Subir nueva imagen</label>
+                    <input type="file" name="image_file" class="form-control" accept="image/*">
+                </div>
+                <div class="col-md-4 d-flex align-items-end gap-3">
+                    <div class="form-check">
+                        <input type="checkbox" name="is_featured" class="form-check-input" id="featured" {% if product.is_featured %}checked{% endif %}>
+                        <label class="form-check-label" for="featured">Destacado</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="is_active" value="true" class="form-check-input" id="active" {% if product.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="active">Activo</label>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-dark">Actualizar producto</button>
+                <a href="{% url 'product_index' %}" class="btn btn-outline-secondary ms-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

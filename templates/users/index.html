@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Usuarios - Anjos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3><i class="bi bi-people"></i> Usuarios</h3>
+    <a href="{% url 'user_create_form' %}" class="btn btn-dark"><i class="bi bi-plus"></i> Nuevo usuario</a>
+</div>
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+            <thead class="table-dark"><tr><th>#</th><th>Nombre</th><th>Email</th><th>Roles</th><th>Activo</th><th>Acciones</th></tr></thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.name }}</td>
+                    <td>{{ u.email }}</td>
+                    <td>{% for r in u.roles %}<span class="badge bg-dark me-1">{{ r }}</span>{% endfor %}</td>
+                    <td>{% if u.is_active %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                    <td>
+                        <a href="{% url 'user_edit_form' pk=u.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        <form method="post" action="{% url 'user_delete' pk=u.id %}" class="d-inline" onsubmit="return confirm('¿Desactivar?')">
+                            {% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}<tr><td colspan="6" class="text-center py-4">No hay usuarios</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

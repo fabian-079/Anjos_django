@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Admin - Anjos{% endblock %}
+{% block content %}
+<h2 class="mb-4">Panel Administrador</h2>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary shadow">
+            <div class="card-body"><h5>Usuarios</h5><h2>{{ total_users }}</h2></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success shadow">
+            <div class="card-body"><h5>Órdenes</h5><h2>{{ total_orders }}</h2></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning shadow">
+            <div class="card-body"><h5>Reparaciones</h5><h2>{{ total_repairs }}</h2></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info shadow">
+            <div class="card-body"><h5>Productos</h5><h2>{{ total_products }}</h2></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white d-flex justify-content-between">
+                <span>Últimas órdenes</span>
+                <a href="{% url 'order_index' %}" class="btn btn-sm btn-outline-light">Ver todas</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>N°</th><th>Cliente</th><th>Total</th><th>Estado</th></tr></thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td><a href="{% url 'order_show' pk=order.id %}">{{ order.order_number }}</a></td>
+                            <td>{{ order.user_name }}</td>
+                            <td>${{ order.total }}</td>
+                            <td><span class="badge bg-secondary">{{ order.status }}</span></td>
+                        </tr>
+                        {% empty %}<tr><td colspan="4" class="text-center">Sin órdenes</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white d-flex justify-content-between">
+                <span>Últimas reparaciones</span>
+                <a href="{% url 'repair_index' %}" class="btn btn-sm btn-outline-light">Ver todas</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>N°</th><th>Cliente</th><th>Estado</th></tr></thead>
+                    <tbody>
+                        {% for repair in recent_repairs %}
+                        <tr>
+                            <td><a href="{% url 'repair_show' pk=repair.id %}">{{ repair.repair_number }}</a></td>
+                            <td>{{ repair.customer_name }}</td>
+                            <td><span class="badge bg-secondary">{{ repair.status }}</span></td>
+                        </tr>
+                        {% empty %}<tr><td colspan="3" class="text-center">Sin reparaciones</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 d-flex flex-wrap gap-2">
+    <a href="{% url 'product_index' %}" class="btn btn-outline-dark"><i class="bi bi-box-seam"></i> Productos</a>
+    <a href="{% url 'category_index' %}" class="btn btn-outline-dark"><i class="bi bi-tags"></i> Categorías</a>
+    <a href="{% url 'user_index' %}" class="btn btn-outline-dark"><i class="bi bi-people"></i> Usuarios</a>
+    <a href="{% url 'order_index' %}" class="btn btn-outline-dark"><i class="bi bi-cart-check"></i> Órdenes</a>
+    <a href="{% url 'repair_index' %}" class="btn btn-outline-dark"><i class="bi bi-tools"></i> Reparaciones</a>
+    <a href="{% url 'customization_index' %}" class="btn btn-outline-dark"><i class="bi bi-palette"></i> Personalizaciones</a>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Editar Reparación - Anjos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Editar Reparación {{ repair.repair_number }}</h3>
+    <a href="{% url 'repair_show' pk=repair.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+<div class="card shadow-sm col-md-7">
+    <div class="card-body">
+        <form method="post" action="{% url 'repair_update' pk=repair.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3"><label class="form-label">Nombre del cliente *</label><input type="text" name="customer_name" class="form-control" value="{{ repair.customer_name }}" required></div>
+            <div class="mb-3"><label class="form-label">Descripción *</label><textarea name="description" class="form-control" rows="3" required>{{ repair.description }}</textarea></div>
+            <div class="mb-3"><label class="form-label">Teléfono *</label><input type="text" name="phone" class="form-control" value="{{ repair.phone }}" required></div>
+            <div class="mb-3">
+                <label class="form-label">Estado</label>
+                <select name="status" class="form-select">
+                    {% for value, label in status_choices %}<option value="{{ value }}" {% if repair.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="mb-3"><label class="form-label">Costo estimado</label><input type="number" name="estimated_cost" class="form-control" step="0.01" value="{{ repair.estimated_cost|default:'' }}"></div>
+            <div class="mb-3"><label class="form-label">Notas del técnico</label><textarea name="technician_notes" class="form-control" rows="2">{{ repair.technician_notes|default:'' }}</textarea></div>
+            <div class="mb-3"><label class="form-label">Notas generales</label><textarea name="notes" class="form-control" rows="2">{{ repair.notes|default:'' }}</textarea></div>
+            <div class="mb-3"><label class="form-label">Actualizar foto</label><input type="file" name="image_file" class="form-control" accept="image/*"></div>
+            <button type="submit" class="btn btn-dark">Actualizar</button>
+            <a href="{% url 'repair_show' pk=repair.id %}" class="btn btn-outline-secondary ms-2">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
