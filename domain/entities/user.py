@@ -16,6 +16,7 @@ class UserEntity:
     roles: List[str] = field(default_factory=list)
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    
 
     def is_admin(self) -> bool:
         return 'admin' in [r.lower() for r in self.roles]
