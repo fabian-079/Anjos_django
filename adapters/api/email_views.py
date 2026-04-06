@@ -46,6 +46,7 @@ def email_mass_send(request):
     return redirect('email_mass_send_form')
 
 
+
 @admin_required
 def email_new_products_notification(request):
     """Notificar nuevos productos a clientes"""
