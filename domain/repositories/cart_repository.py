@@ -5,6 +5,7 @@ from domain.entities.cart_item import CartItemEntity
 
 class CartRepository(ABC):
 
+    
     @abstractmethod
     def find_by_user(self, user_id: int) -> List[CartItemEntity]:
         pass
