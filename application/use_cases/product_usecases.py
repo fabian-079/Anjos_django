@@ -12,6 +12,7 @@ class ProductUseCases:
     def get_all_products(self) -> List[ProductEntity]:
         return self._repo.find_all()
 
+    
     def get_product_by_id(self, product_id: int) -> Optional[ProductEntity]:
         return self._repo.find_by_id(product_id)
 
