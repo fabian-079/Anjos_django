@@ -11,9 +11,6 @@ from infrastructure.container import (
 )
 from adapters.api.decorators import admin_required
 
-
-
-
 def login_view(request):
     if request.user.is_authenticated:
         return _redirect_by_role(request.user)
@@ -73,6 +70,8 @@ def register_view(request):
             except ValueError as e:
                 messages.error(request, str(e))
     return render(request, 'auth/register.html')
+
+
 
 
 def logout_view(request):
