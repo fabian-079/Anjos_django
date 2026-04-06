@@ -6,6 +6,7 @@ from django.utils.html import strip_tags
 from domain.repositories.user_repository import UserRepository
 
 
+
 class EmailUseCases:
     def __init__(self, user_repo: UserRepository):
         self._user_repo = user_repo
