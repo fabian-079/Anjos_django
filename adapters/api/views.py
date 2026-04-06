@@ -12,7 +12,7 @@ from infrastructure.container import (
 from adapters.api.decorators import admin_required
 
 
-# ─── Auth ─────────────────────────────────────────────────────────────────────
+
 
 def login_view(request):
     if request.user.is_authenticated:
