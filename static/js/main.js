@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 5000);
     });
 
-    // Confirm on delete forms
+    //Confirmacion del eliminado
     document.querySelectorAll('form[data-confirm]').forEach(function (form) {
         form.addEventListener('submit', function (e) {
             if (!confirm(form.dataset.confirm)) {
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Quantity input clamp in cart
+    // 
     document.querySelectorAll('input[name="quantity"]').forEach(function (input) {
         input.addEventListener('change', function () {
             var val = parseInt(this.value);
