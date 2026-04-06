@@ -1,0 +1,359 @@
+{% extends 'base.html' %}
+{% block title %}Pago seguro - ANJOS{% endblock %}
+
+{% block extra_css %}
+<style>
+.checkout-steps { display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:2rem; }
+.checkout-step { display:flex; flex-direction:column; align-items:center; position:relative; flex:1; max-width:140px; }
+.step-circle { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.82rem; font-weight:700; border:2px solid #ddd; background:#fff; color:#bbb; transition:.3s; }
+.step-circle.done { background:var(--gold); border-color:var(--gold); color:#fff; }
+.step-circle.active { background:#000; border-color:#000; color:#fff; }
+.step-label { font-size:.7rem; text-transform:uppercase; letter-spacing:.5px; color:#bbb; margin-top:5px; font-weight:600; }
+.step-label.active { color:#000; }
+.step-line { flex:1; height:2px; background:#ddd; margin: 0 -2px; position:relative; top:-14px; }
+.step-line.done { background:var(--gold); }
+
+.payment-tab { cursor:pointer; border:2px solid #e0e0e0; border-radius:8px; padding:14px 18px; transition:.2s; background:#fff; }
+.payment-tab:hover { border-color:#bbb; }
+.payment-tab.selected { border-color:var(--gold); background:#fffdf5; }
+.payment-tab input[type=radio] { display:none; }
+.payment-tab .tab-icon { font-size:1.5rem; margin-bottom:4px; }
+
+.card-input { position:relative; }
+.card-input .card-brand { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:1.3rem; color:#bbb; }
+
+.secure-badge { background:#f0fff4; border:1px solid #c3e6cb; border-radius:6px; padding:10px 14px; font-size:.78rem; color:#2d7a2d; }
+.order-summary-item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0; }
+.order-summary-item:last-child { border-bottom:none; }
+
+.pse-bank { cursor:pointer; border:2px solid #e0e0e0; border-radius:6px; padding:10px; text-align:center; font-size:.78rem; transition:.2s; }
+.pse-bank:hover,.pse-bank.selected { border-color:var(--gold); background:#fffdf5; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Pasos del proceso -->
+<div class="d-flex align-items-center justify-content-center mb-5" style="gap:0">
+    <div class="checkout-step">
+        <div class="step-circle done"><i class="bi bi-check"></i></div>
+        <div class="step-label">Carrito</div>
+    </div>
+    <div class="step-line done"></div>
+    <div class="checkout-step">
+        <div class="step-circle active">2</div>
+        <div class="step-label active">Entrega</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="checkout-step">
+        <div class="step-circle active">3</div>
+        <div class="step-label active">Pago</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="checkout-step">
+        <div class="step-circle">4</div>
+        <div class="step-label">Confirmación</div>
+    </div>
+</div>
+
+<form method="post" action="{% url 'order_create' %}" id="checkout-form">
+{% csrf_token %}
+<div class="row g-4">
+
+    <!-- Columna izquierda -->
+    <div class="col-lg-7">
+
+        <!-- Sección 1: Datos de entrega -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3 gap-2">
+                    <div style="width:28px;height:28px;background:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        <span style="color:#fff;font-size:.75rem;font-weight:700">1</span>
+                    </div>
+                    <h6 class="mb-0 fw-bold text-uppercase" style="letter-spacing:.8px;font-size:.85rem">Información de entrega</h6>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Nombre completo</label>
+                        <input type="text" class="form-control" value="{{ user.name|default:'' }}" disabled style="background:#fafafa">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Teléfono *</label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background:#fafafa;border-right:0"><i class="bi bi-phone text-muted"></i></span>
+                            <input type="text" name="phone" class="form-control" style="border-left:0" value="{{ user.phone|default:'' }}" required placeholder="300 000 0000">
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Dirección de entrega *</label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background:#fafafa;border-right:0"><i class="bi bi-geo-alt text-muted"></i></span>
+                            <input type="text" name="shipping_address" class="form-control" style="border-left:0" value="{{ user.address|default:'' }}" required placeholder="Calle 10 # 20-30, Bogotá">
+                        </div>
+                        <input type="hidden" name="billing_address" id="billing_address_hidden" value="{{ user.address|default:'' }}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Comentarios adicionales</label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="Instrucciones especiales de entrega, referencias..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 2: Método de pago -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3 gap-2">
+                    <div style="width:28px;height:28px;background:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        <span style="color:#fff;font-size:.75rem;font-weight:700">2</span>
+                    </div>
+                    <h6 class="mb-0 fw-bold text-uppercase" style="letter-spacing:.8px;font-size:.85rem">Método de pago</h6>
+                </div>
+
+                <!-- Opciones de pago -->
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
+                        <label class="payment-tab text-center w-100 selected" id="tab-TARJETA">
+                            <input type="radio" name="payment_method" value="TARJETA" checked onchange="showPayment('TARJETA')">
+                            <div class="tab-icon">💳</div>
+                            <div style="font-size:.78rem;font-weight:600">Tarjeta</div>
+                            <div style="font-size:.68rem;color:#999">Débito / Crédito</div>
+                        </label>
+                    </div>
+                    <div class="col-4">
+                        <label class="payment-tab text-center w-100" id="tab-PSE">
+                            <input type="radio" name="payment_method" value="PSE" onchange="showPayment('PSE')">
+                            <div class="tab-icon">🏦</div>
+                            <div style="font-size:.78rem;font-weight:600">PSE</div>
+                            <div style="font-size:.68rem;color:#999">Transferencia</div>
+                        </label>
+                    </div>
+                    <div class="col-4">
+                        <label class="payment-tab text-center w-100" id="tab-EFECTIVO">
+                            <input type="radio" name="payment_method" value="EFECTIVO" onchange="showPayment('EFECTIVO')">
+                            <div class="tab-icon">💵</div>
+                            <div style="font-size:.78rem;font-weight:600">Efectivo</div>
+                            <div style="font-size:.68rem;color:#999">Contra entrega</div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Panel: Tarjeta -->
+                <div id="panel-TARJETA">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Número de tarjeta</label>
+                            <div class="card-input">
+                                <input type="text" class="form-control" id="cardNumber" placeholder="0000  0000  0000  0000" maxlength="19" style="letter-spacing:2px;padding-right:48px" oninput="formatCard(this)">
+                                <span class="card-brand" id="cardBrand"><i class="bi bi-credit-card"></i></span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Nombre en la tarjeta</label>
+                            <input type="text" class="form-control text-uppercase" placeholder="COMO APARECE EN LA TARJETA" style="letter-spacing:1px">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Vencimiento</label>
+                            <input type="text" class="form-control" placeholder="MM / AA" maxlength="7" oninput="formatExpiry(this)">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">CVV
+                                <i class="bi bi-question-circle text-muted ms-1" title="3 dígitos al reverso de la tarjeta"></i>
+                            </label>
+                            <input type="password" class="form-control" placeholder="•••" maxlength="4">
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-3 align-items-center flex-wrap">
+                        <span style="background:#1a1f71;color:#fff;font-weight:900;font-size:.8rem;padding:3px 10px;border-radius:4px;letter-spacing:1px;font-style:italic">VISA</span>
+                        <span style="background:#fff;border:1px solid #ddd;border-radius:4px;padding:2px 6px;font-size:.7rem;font-weight:700;display:flex;align-items:center;gap:3px">
+                            <span style="background:#eb001b;width:18px;height:18px;border-radius:50%;display:inline-block"></span>
+                            <span style="background:#f79e1b;width:18px;height:18px;border-radius:50%;display:inline-block;margin-left:-8px"></span>
+                            <span style="color:#333;margin-left:4px">Mastercard</span>
+                        </span>
+                        <span style="background:#007bc1;color:#fff;font-weight:800;font-size:.72rem;padding:3px 8px;border-radius:4px;letter-spacing:.5px">AMEX</span>
+                        <span style="background:#003087;color:#fff;font-weight:700;font-size:.72rem;padding:3px 8px;border-radius:4px">Pay<span style="color:#009cde">Pal</span></span>
+                    </div>
+                </div>
+
+                <!-- Panel: PSE -->
+                <div id="panel-PSE" style="display:none">
+                    <p class="small text-muted mb-3">Selecciona tu banco para ser redirigido al portal de pagos PSE:</p>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6 col-md-3">
+                            <div class="pse-bank" onclick="selectBank(this)">
+                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
+                                <div style="font-size:.72rem">Bancolombia</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="pse-bank" onclick="selectBank(this)">
+                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
+                                <div style="font-size:.72rem">Banco de Bogotá</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="pse-bank" onclick="selectBank(this)">
+                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
+                                <div style="font-size:.72rem">Davivienda</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="pse-bank" onclick="selectBank(this)">
+                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
+                                <div style="font-size:.72rem">BBVA</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="pse-bank" onclick="selectBank(this)">
+                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
+                                <div style="font-size:.72rem">Nequi</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="pse-bank" onclick="selectBank(this)">
+                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
+                                <div style="font-size:.72rem">Banco Popular</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="pse-bank" onclick="selectBank(this)">
+                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
+                                <div style="font-size:.72rem">Colpatria</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="pse-bank" onclick="selectBank(this)">
+                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
+                                <div style="font-size:.72rem">Banco de Occidente</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-info py-2 small mb-0">
+                        <i class="bi bi-info-circle me-1"></i> Serás redirigido de forma segura al portal de tu banco para completar el pago.
+                    </div>
+                </div>
+
+                <!-- Panel: Efectivo -->
+                <div id="panel-EFECTIVO" style="display:none">
+                    <div class="rounded p-3 mb-0" style="background:#fffdf5;border:1px solid #f0d080">
+                        <h6 class="fw-bold mb-2" style="font-size:.85rem"><i class="bi bi-truck me-1" style="color:var(--gold)"></i> Pago contra entrega</h6>
+                        <ul class="small text-muted mb-0 ps-3">
+                            <li>El pago se realiza al momento de recibir el pedido.</li>
+                            <li>Ten el monto exacto disponible: <strong>${{ total|floatformat:0 }}</strong></li>
+                            <li>El mensajero entregará un comprobante de pago.</li>
+                            <li>Disponible solo en el área metropolitana de Bogotá.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Seguridad -->
+        <div class="secure-badge d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-shield-lock-fill fs-5"></i>
+            <div>
+                <div class="fw-bold" style="font-size:.8rem">Pago 100% seguro</div>
+                <div style="font-size:.73rem;opacity:.8">Tus datos están protegidos con cifrado SSL de 256 bits</div>
+            </div>
+            <div class="ms-auto d-flex gap-2 align-items-center text-muted" style="font-size:.75rem">
+                <i class="bi bi-lock-fill"></i> SSL
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Columna derecha: Resumen -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm" style="position:sticky;top:20px">
+            <div class="card-body p-4">
+                <h6 class="fw-bold text-uppercase mb-3" style="letter-spacing:.8px;font-size:.82rem;border-bottom:2px solid var(--gold);padding-bottom:8px">Resumen del pedido</h6>
+
+                <div style="max-height:220px;overflow-y:auto;margin-bottom:12px">
+                    {% for item in cart_items %}
+                    <div class="order-summary-item">
+                        <div>
+                            <div class="fw-bold small">{{ item.product_name }}</div>
+                            <div class="text-muted" style="font-size:.75rem">Cantidad: {{ item.quantity }}</div>
+                        </div>
+                        <div class="fw-bold small">${{ item.subtotal|floatformat:0 }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted">Subtotal</span><span>${{ subtotal|floatformat:0 }}</span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted">Envío</span><span class="text-success fw-bold">Gratis</span>
+                </div>
+                <div class="d-flex justify-content-between small mb-2">
+                    <span class="text-muted">IVA (19%)</span><span>${{ tax|floatformat:0 }}</span>
+                </div>
+                <div class="d-flex justify-content-between fw-bold pt-2 mb-4" style="border-top:2px solid #000;font-size:1.05rem">
+                    <span>Total a pagar</span>
+                    <span style="color:var(--gold)">${{ total|floatformat:0 }}</span>
+                </div>
+
+                <button type="submit" class="btn btn-gold w-100 py-3" style="font-size:.9rem;letter-spacing:1px;font-weight:700">
+                    <i class="bi bi-lock-fill me-2"></i>CONFIRMAR Y PAGAR
+                </button>
+                <div class="text-center mt-2">
+                    <a href="{% url 'carrito' %}" class="small text-muted text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i>Volver al carrito
+                    </a>
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 mt-3">
+                    <i class="bi bi-shield-check text-muted" title="Pago seguro" style="font-size:1.2rem"></i>
+                    <i class="bi bi-lock text-muted" title="SSL" style="font-size:1.2rem"></i>
+                    <i class="bi bi-arrow-repeat text-muted" title="Garantía de devolución" style="font-size:1.2rem"></i>
+                    <i class="bi bi-headset text-muted" title="Soporte 24/7" style="font-size:1.2rem"></i>
+                </div>
+                <div class="text-center mt-1" style="font-size:.68rem;color:#bbb;letter-spacing:.5px">
+                    PAGO SEGURO · GARANTÍA · SOPORTE
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showPayment(method) {
+    ['TARJETA','PSE','EFECTIVO'].forEach(function(m) {
+        document.getElementById('panel-' + m).style.display = m === method ? '' : 'none';
+        var tab = document.getElementById('tab-' + m);
+        tab.classList.toggle('selected', m === method);
+    });
+}
+
+function formatCard(input) {
+    var v = input.value.replace(/\D/g, '').substring(0, 16);
+    input.value = v.replace(/(.{4})/g, '$1  ').trim();
+    var brand = document.getElementById('cardBrand');
+    if (v.startsWith('4')) brand.innerHTML = '<span style="color:#1a1f71;font-weight:700;font-size:.9rem">VISA</span>';
+    else if (v.startsWith('5')) brand.innerHTML = '<i class="bi bi-credit-card-2-front" style="color:#eb001b"></i>';
+    else if (v.startsWith('3')) brand.innerHTML = '<span style="color:#007bc1;font-weight:700;font-size:.8rem">AMEX</span>';
+    else brand.innerHTML = '<i class="bi bi-credit-card"></i>';
+}
+
+function formatExpiry(input) {
+    var v = input.value.replace(/\D/g, '').substring(0, 4);
+    if (v.length >= 2) v = v.substring(0,2) + ' / ' + v.substring(2);
+    input.value = v;
+}
+
+function selectBank(el, bank) {
+    document.querySelectorAll('.pse-bank').forEach(function(b) { b.classList.remove('selected'); });
+    el.classList.add('selected');
+}
+
+document.querySelector('[name=shipping_address]').addEventListener('input', function() {
+    document.getElementById('billing_address_hidden').value = this.value;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,395 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ANJOS{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+    <style>
+        :root {
+            --gold: #C8A951;
+            --gold-dark: #9a7e35;
+            --gold-light: #f0e0a0;
+            --dark: #1a1a1a;
+            --soft: #f9f6f0;
+        }
+        body { font-family: 'Lato', sans-serif; background: #fff; color: #333; }
+        h1,h2,h3,h4,h5,.brand-name { font-family: 'Playfair Display', serif; }
+
+        /* Top bar */
+        .top-bar { background: #000; color: #aaa; font-size: 0.78rem; padding: 6px 0; border-bottom: 1px solid #1a1a1a; }
+        .top-bar a { color: #aaa; text-decoration: none; }
+        .top-bar a:hover { color: var(--gold); }
+
+        /* Header */
+        .site-header { background: #000; padding: 18px 0; }
+        .site-header .auth-links a { color: #ccc; text-decoration: none; font-size: 0.8rem; letter-spacing: .5px; transition: color .2s; }
+        .site-header .auth-links a:hover { color: var(--gold); }
+        .site-header .auth-links .divider { color: #555; margin: 0 6px; }
+        .site-header .menu-btn { background: transparent; border: 1px solid #444; color: #ccc; font-size: 0.8rem; letter-spacing: 1px; padding: 5px 12px; border-radius: 3px; text-transform: uppercase; cursor: pointer; transition: border-color .2s, color .2s; }
+        .site-header .menu-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+        /* Nav */
+        .main-nav { background: #000; border-top: 1px solid #222; border-bottom: 1px solid var(--gold); }
+        .main-nav .nav-link { color: #ccc !important; font-size: 0.82rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 12px 16px !important; transition: color .2s; }
+        .main-nav .nav-link:hover, .main-nav .nav-link.active { color: var(--gold) !important; }
+        .main-nav .dropdown-menu { background: #222; border: 1px solid #333; border-top: 2px solid var(--gold); border-radius: 0; box-shadow: 0 4px 16px rgba(0,0,0,.3); }
+        .main-nav .dropdown-item { color: #ccc; font-size: 0.83rem; padding: 9px 20px; }
+        .main-nav .dropdown-item:hover { background: #333; color: var(--gold); }
+
+        /* Admin nav */
+        .admin-nav { background: #000; }
+        .admin-nav .nav-link { color: #ccc !important; font-size: 0.82rem; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; padding: 10px 14px !important; }
+        .admin-nav .nav-link:hover { color: var(--gold) !important; }
+        .admin-nav .dropdown-menu { background: #222; border: 1px solid #444; border-radius: 4px; }
+        .admin-nav .dropdown-item { color: #ccc; font-size: 0.82rem; }
+        .admin-nav .dropdown-item:hover { background: #333; color: var(--gold); }
+
+        /* Icons nav */
+        .nav-icons a { color: #ccc; font-size: 1.15rem; text-decoration: none; margin-left: 14px; transition: color .2s; }
+        .nav-icons a:hover { color: var(--gold); }
+        .nav-icons .logout-btn { color: #ccc; font-size: 1.15rem; margin-left: 14px; transition: color .2s; }
+        .nav-icons .logout-btn:hover { color: var(--gold); }
+
+        /* Buttons */
+        .btn-gold { background: var(--gold); color: #fff; border: none; font-weight: 700; letter-spacing: 1px; }
+        .btn-gold:hover { background: var(--gold-dark); color: #fff; }
+        .btn-outline-gold { border: 2px solid var(--gold); color: var(--gold); background: transparent; font-weight: 700; }
+        .btn-outline-gold:hover { background: var(--gold); color: #fff; }
+
+        /* Global images */
+        img { max-width: 100%; height: auto; display: block; }
+        .img-cover { width: 100%; object-fit: cover; display: block; }
+        .img-contain { width: 100%; object-fit: contain; display: block; }
+        .table-thumb { width: 52px; height: 52px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
+        .product-img-card { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; background: var(--soft); display: block; }
+
+        /* Cards */
+        .product-card { border: 1px solid #eee; border-radius: 4px; transition: box-shadow .2s, transform .2s; overflow: hidden; }
+        .product-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.1); transform: translateY(-3px); }
+        .product-card .card-img-top { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; background: var(--soft); display: block; }
+        .product-card .heart-btn { position: absolute; top: 10px; right: 10px; background: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.15); color: #999; font-size: 1rem; transition: color .2s; }
+        .product-card .heart-btn:hover, .product-card .heart-btn.active { color: #e74c3c; }
+        .product-card .ref { font-size: 0.72rem; color: #999; }
+        .product-card .price { color: var(--dark); font-weight: 700; font-size: 1rem; }
+        .product-card .price-old { color: #999; text-decoration: line-through; font-size: 0.82rem; }
+
+        /* Sidebar */
+        .filter-sidebar .filter-section { border-bottom: 1px solid #eee; padding: 14px 0; }
+        .filter-sidebar .filter-title { font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; justify-content: space-between; }
+        .filter-sidebar input[type=range] { accent-color: var(--gold); }
+
+        /* Breadcrumb */
+        .breadcrumb-item a { color: var(--gold); text-decoration: none; }
+        .breadcrumb-item.active { color: #666; }
+
+        /* Alerts */
+        .alert { border-radius: 2px; border: none; }
+        .alert-success { background: #f0faf0; color: #2d7d2d; border-left: 4px solid #2d7d2d; }
+        .alert-danger { background: #fff0f0; color: #c0392b; border-left: 4px solid #c0392b; }
+        .alert-info { background: #f0f6ff; color: #1a5276; border-left: 4px solid var(--gold); }
+        .alert-warning { background: #fffbf0; color: #7d5a00; border-left: 4px solid var(--gold); }
+
+        /* Tables */
+        .table thead th { background: var(--soft); font-size: 0.8rem; text-transform: uppercase; letter-spacing: .5px; color: #666; font-weight: 700; border: none; }
+        .table td { vertical-align: middle; font-size: 0.9rem; border-color: #f0f0f0; }
+
+        /* Stat cards */
+        .stat-card { border: none; border-radius: 6px; padding: 22px; }
+        .stat-card .stat-icon { font-size: 2rem; opacity: .8; }
+        .stat-card .stat-number { font-size: 2rem; font-weight: 700; font-family: 'Playfair Display', serif; }
+        .stat-card .stat-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; opacity: .8; }
+
+        /* Section title */
+        .section-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; position: relative; padding-bottom: 12px; margin-bottom: 24px; }
+        .section-title::after { content: ''; display: block; width: 50px; height: 2px; background: var(--gold); position: absolute; bottom: 0; left: 0; }
+
+        /* Footer */
+        .site-footer { background: var(--dark); color: #999; padding: 40px 0 20px; margin-top: 60px; }
+        .site-footer h6 { color: var(--gold); font-family: 'Playfair Display', serif; letter-spacing: 2px; margin-bottom: 14px; }
+        .site-footer a { color: #999; text-decoration: none; font-size: 0.88rem; }
+        .site-footer a:hover { color: var(--gold); }
+        .site-footer .footer-bottom { border-top: 1px solid #333; margin-top: 30px; padding-top: 18px; font-size: 0.8rem; }
+
+        /* Badge status */
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-processing { background: #cce5ff; color: #004085; }
+        .badge-completed, .badge-delivered { background: #d4edda; color: #155724; }
+        .badge-cancelled { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<!-- Top Bar -->
+<div class="top-bar d-none d-md-block">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div>
+            <i class="bi bi-geo-alt me-1"></i> Bogotá, Colombia &nbsp;|&nbsp;
+            <i class="bi bi-whatsapp me-1"></i> <a href="#">+57 300 000 0000</a>
+        </div>
+        <div>
+            <i class="bi bi-clock me-1"></i> Lun - Sáb: 9am - 7pm
+        </div>
+    </div>
+</div>
+
+{% if user.is_authenticated and user.is_admin %}
+<!-- Admin Navigation -->
+<nav class="admin-nav navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'dashboard_admin' %}">
+            <img src="{% static 'images/Logo.png' %}" alt="ANJOS" style="height:38px;object-fit:contain">
+            <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem;vertical-align:middle">ADMIN</span>
+        </a>
+        <button class="navbar-toggler border-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
+            <i class="bi bi-list text-light"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="adminNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="{% url 'dashboard_admin' %}"><i class="bi bi-speedometer2 me-1"></i>Panel</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-box-seam me-1"></i>Inventario</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'product_index' %}"><i class="bi bi-gem me-2"></i>Productos</a></li>
+                        <li><a class="dropdown-item" href="{% url 'category_index' %}"><i class="bi bi-tags me-2"></i>Categorías</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-people me-1"></i>Clientes</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'user_index' %}"><i class="bi bi-person me-2"></i>Todos los clientes</a></li>
+                        <li><a class="dropdown-item" href="{% url 'order_index' %}"><i class="bi bi-bag me-2"></i>Pedidos</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-tools me-1"></i>Servicios</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'repair_index' %}"><i class="bi bi-wrench me-2"></i>Reparaciones</a></li>
+                        <li><a class="dropdown-item" href="{% url 'customization_index' %}"><i class="bi bi-palette me-2"></i>Diseños a medida</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-stars me-1"></i>Herramientas</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'email_mass_send_form' %}"><i class="bi bi-envelope me-2"></i>Enviar Notificaciones</a></li>
+                        <li><a class="dropdown-item" href="{% url 'reports_index' %}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Informes y Estadísticas</a></li>
+                        <li><a class="dropdown-item" href="{% url 'webservice_dashboard' %}"><i class="bi bi-globe2 me-2"></i>Precios y Cotizaciones</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="{% url 'notification_index' %}">
+                        <i class="bi bi-bell"></i>
+                        {% if unread_notifications_count %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notif-navbar-badge" style="font-size:.6rem;padding:3px 5px">{{ unread_notifications_count }}</span>
+                        {% else %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notif-navbar-badge" style="font-size:.6rem;padding:3px 5px;display:none">0</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item ms-2">
+                    <form method="post" action="{% url 'logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+{% else %}
+<!-- Public Header -->
+<header class="site-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+
+            <!-- Left: Menu toggle -->
+            <div style="min-width:100px">
+                <button class="menu-btn" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-expanded="false">
+                    <i class="bi bi-list me-1"></i> Menú
+                </button>
+            </div>
+
+            <!-- Center: Logo -->
+            <a href="{% url 'home' %}" class="d-block">
+                <img src="{% static 'images/Logo.png' %}" alt="ANJOS" style="height:78px;object-fit:contain;display:block">
+            </a>
+
+            <!-- Right: Auth + Icons -->
+            <div style="min-width:100px" class="text-end">
+                {% if user.is_authenticated %}
+                <div class="auth-links mb-1">
+                    <a href="{% url 'dashboard_cliente' %}"><i class="bi bi-person-circle me-1"></i>Mi cuenta</a>
+                </div>
+                {% else %}
+                <div class="auth-links mb-1">
+                    <a href="{% url 'login' %}"><i class="bi bi-person me-1"></i>Ingresar</a>
+                    <span class="divider">|</span>
+                    <a href="{% url 'register' %}"><i class="bi bi-person-plus me-1"></i>Registrarse</a>
+                </div>
+                {% endif %}
+                <div class="nav-icons d-flex align-items-center justify-content-end">
+                    <a href="{% url 'favoritos' %}" title="Favoritos"><i class="bi bi-heart"></i></a>
+                    <a href="{% url 'buscar' %}" title="Buscar"><i class="bi bi-search"></i></a>
+                    <a href="{% url 'carrito' %}" title="Carrito"><i class="bi bi-bag"></i></a>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'notification_index' %}" title="Notificaciones" class="position-relative">
+                        <i class="bi bi-bell"></i>
+                        {% if unread_notifications_count %}
+                        <span class="position-absolute notif-navbar-badge" style="top:-4px;right:-6px;background:#e74c3c;color:#fff;font-size:.58rem;font-weight:700;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;line-height:1">{{ unread_notifications_count }}</span>
+                        {% else %}
+                        <span class="position-absolute notif-navbar-badge" style="top:-4px;right:-6px;background:#e74c3c;color:#fff;font-size:.58rem;font-weight:700;border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center;line-height:1">0</span>
+                        {% endif %}
+                    </a>
+                    <form method="post" action="{% url 'logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn p-0 border-0 bg-transparent logout-btn" title="Salir">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Collapsible Navigation -->
+<nav class="main-nav collapse" id="mainNav">
+    <div class="container py-2">
+        <ul class="navbar-nav d-flex flex-row flex-wrap gap-1">
+            <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Inicio</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'catalogo' %}">Colección</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'buscar' %}">Buscar</a></li>
+            {% if user.is_authenticated %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'repair_create_form' %}">Reparaciones</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'customization_create_form' %}">Diseño a medida</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'order_index' %}">Mis pedidos</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+{% endif %}
+
+<main class="flex-grow-1">
+    <div class="container my-4">
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<footer class="site-footer">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <h6>ANJOS</h6>
+                <p class="small">Piezas únicas creadas con amor y dedicación para los momentos más especiales de tu vida.</p>
+            </div>
+            <div class="col-md-3">
+                <h6>Explorar</h6>
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'catalogo' %}">Colección completa</a></li>
+                    <li><a href="{% url 'buscar' %}">Búsqueda avanzada</a></li>
+                    {% if user.is_authenticated %}<li><a href="{% url 'favoritos' %}">Mis favoritos</a></li>{% endif %}
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h6>Servicios</h6>
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'repair_create_form' %}">Reparaciones</a></li>
+                    <li><a href="{% url 'customization_create_form' %}">Diseño a medida</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2">
+                <h6>Contacto</h6>
+                <ul class="list-unstyled small">
+                    <li><i class="bi bi-whatsapp me-1"></i> +57 300 000 0000</li>
+                    <li><i class="bi bi-envelope me-1"></i> info@anjos.com</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom text-center">
+            <p class="mb-0">&copy; 2024 ANJOS — Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/main.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('input[type="file"].form-control').forEach(function (input) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'input-group';
+        input.parentNode.insertBefore(wrapper, input);
+        input.style.display = 'none';
+        wrapper.appendChild(input);
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-outline-secondary';
+        btn.innerHTML = '<i class="bi bi-upload me-1"></i>Seleccionar';
+        var lbl = document.createElement('span');
+        lbl.className = 'form-control text-muted';
+        lbl.textContent = 'Ningún archivo seleccionado';
+        lbl.style.cursor = 'pointer';
+        wrapper.appendChild(btn);
+        wrapper.appendChild(lbl);
+        btn.addEventListener('click', function () { input.click(); });
+        lbl.addEventListener('click', function () { input.click(); });
+        input.addEventListener('change', function () {
+            lbl.textContent = input.files.length > 0 ? input.files[0].name : 'Ningún archivo seleccionado';
+            lbl.classList.toggle('text-muted', input.files.length === 0);
+        });
+    });
+
+    document.querySelectorAll('.heart-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var btn = form.querySelector('.heart-btn');
+            var icon = btn ? btn.querySelector('i') : null;
+            var csrf = form.querySelector('[name=csrfmiddlewaretoken]').value;
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrf,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new FormData(form)
+            }).then(function (r) {
+                return r.json();
+            }).then(function (data) {
+                if (data.success && icon) {
+                    if (data.added) {
+                        icon.classList.remove('bi-heart');
+                        icon.classList.add('bi-heart-fill');
+                        btn.style.color = '#e74c3c';
+                        btn.title = 'Quitar de favoritos';
+                    } else {
+                        icon.classList.remove('bi-heart-fill');
+                        icon.classList.add('bi-heart');
+                        btn.style.color = '';
+                        btn.title = 'Guardar en favoritos';
+                    }
+                }
+            }).catch(function () {});
+        });
+    });
+});
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

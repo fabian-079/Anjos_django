@@ -1,0 +1,5 @@
+Django==4.2.16
+mysqlclient==2.2.4
+Pillow==10.4.0
+reportlab==4.2.2
+requests==2.31.0

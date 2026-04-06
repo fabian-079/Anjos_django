@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block title %}Editar diseño #{{ customization.id }} - ANJOS{% endblock %}
+{% block content %}
+<a href="{% url 'customization_show' pk=customization.id %}" class="text-decoration-none small d-block mb-3" style="color:var(--gold)">
+    <i class="bi bi-arrow-left me-1"></i> Ver diseño
+</a>
+<h2 class="section-title">Editar diseño a medida #{{ customization.id }}</h2>
+<div class="card border-0 shadow-sm col-md-8">
+    <div class="card-body">
+        <form method="post" action="{% url 'customization_update' pk=customization.id %}">
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Tipo de pieza *</label>
+                    <select name="jewelry_type" class="form-select" required>
+                        <option value="" disabled>Seleccionar tipo de pieza</option>
+                        <option value="Anillo" {% if customization.jewelry_type == 'Anillo' %}selected{% endif %}>Anillo</option>
+                        <option value="Collar" {% if customization.jewelry_type == 'Collar' %}selected{% endif %}>Collar</option>
+                        <option value="Pulsera" {% if customization.jewelry_type == 'Pulsera' %}selected{% endif %}>Pulsera</option>
+                        <option value="Aretes" {% if customization.jewelry_type == 'Aretes' %}selected{% endif %}>Aretes</option>
+                        <option value="Reloj" {% if customization.jewelry_type == 'Reloj' %}selected{% endif %}>Reloj</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Descripción del diseño *</label>
+                    <input type="text" name="design" class="form-control" required value="{{ customization.design|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Material *</label>
+                    <select name="material" class="form-select" required>
+                        <option value="" disabled>Seleccionar material</option>
+                        <option value="Oro" {% if customization.material == 'Oro' %}selected{% endif %}>Oro</option>
+                        <option value="Plata" {% if customization.material == 'Plata' %}selected{% endif %}>Plata</option>
+                        <option value="Platino" {% if customization.material == 'Platino' %}selected{% endif %}>Platino</option>
+                        <option value="Acero Inoxidable" {% if customization.material == 'Acero Inoxidable' %}selected{% endif %}>Acero Inoxidable</option>
+                        <option value="Oro Blanco" {% if customization.material == 'Oro Blanco' %}selected{% endif %}>Oro Blanco</option>
+                        <option value="Oro Rosa" {% if customization.material == 'Oro Rosa' %}selected{% endif %}>Oro Rosa</option>
+                        <option value="Oro Amarillo" {% if customization.material == 'Oro Amarillo' %}selected{% endif %}>Oro Amarillo</option>
+                        <option value="Titanio" {% if customization.material == 'Titanio' %}selected{% endif %}>Titanio</option>
+                        <option value="Otro" {% if customization.material == 'Otro' %}selected{% endif %}>Otro</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Color *</label>
+                    <select name="color" class="form-select" required>
+                        <option value="" disabled>Seleccionar color</option>
+                        <option value="Dorado" {% if customization.color == 'Dorado' %}selected{% endif %}>Dorado</option>
+                        <option value="Plateado" {% if customization.color == 'Plateado' %}selected{% endif %}>Plateado</option>
+                        <option value="Rosa" {% if customization.color == 'Rosa' %}selected{% endif %}>Rosa</option>
+                        <option value="Blanco" {% if customization.color == 'Blanco' %}selected{% endif %}>Blanco</option>
+                        <option value="Negro" {% if customization.color == 'Negro' %}selected{% endif %}>Negro</option>
+                        <option value="Multicolor" {% if customization.color == 'Multicolor' %}selected{% endif %}>Multicolor</option>
+                        <option value="Otro" {% if customization.color == 'Otro' %}selected{% endif %}>Otro</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Acabado *</label>
+                    <select name="finish" class="form-select" required>
+                        <option value="" disabled>Seleccionar acabado</option>
+                        <option value="Brillante" {% if customization.finish == 'Brillante' %}selected{% endif %}>Brillante</option>
+                        <option value="Mate" {% if customization.finish == 'Mate' %}selected{% endif %}>Mate</option>
+                        <option value="Satinado" {% if customization.finish == 'Satinado' %}selected{% endif %}>Satinado</option>
+                        <option value="Pulido" {% if customization.finish == 'Pulido' %}selected{% endif %}>Pulido</option>
+                        <option value="Texturizado" {% if customization.finish == 'Texturizado' %}selected{% endif %}>Texturizado</option>
+                        <option value="Otro" {% if customization.finish == 'Otro' %}selected{% endif %}>Otro</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Piedras *</label>
+                    <select name="stones" class="form-select" required>
+                        <option value="" disabled>Seleccionar piedras</option>
+                        <option value="Sin piedras" {% if customization.stones == 'Sin piedras' %}selected{% endif %}>Sin piedras</option>
+                        <option value="Diamante" {% if customization.stones == 'Diamante' %}selected{% endif %}>Diamante</option>
+                        <option value="Rubí" {% if customization.stones == 'Rubí' %}selected{% endif %}>Rubí</option>
+                        <option value="Zafiro" {% if customization.stones == 'Zafiro' %}selected{% endif %}>Zafiro</option>
+                        <option value="Esmeralda" {% if customization.stones == 'Esmeralda' %}selected{% endif %}>Esmeralda</option>
+                        <option value="Perla" {% if customization.stones == 'Perla' %}selected{% endif %}>Perla</option>
+                        <option value="Amatista" {% if customization.stones == 'Amatista' %}selected{% endif %}>Amatista</option>
+                        <option value="Topacio" {% if customization.stones == 'Topacio' %}selected{% endif %}>Topacio</option>
+                        <option value="Cuarzo" {% if customization.stones == 'Cuarzo' %}selected{% endif %}>Cuarzo</option>
+                        <option value="Cristal" {% if customization.stones == 'Cristal' %}selected{% endif %}>Cristal</option>
+                        <option value="Circonita" {% if customization.stones == 'Circonita' %}selected{% endif %}>Circonita</option>
+                        <option value="Mixto" {% if customization.stones == 'Mixto' %}selected{% endif %}>Mixto</option>
+                        <option value="Otro" {% if customization.stones == 'Otro' %}selected{% endif %}>Otro</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Talla / Tamaño</label>
+                    <select name="size" id="size" class="form-select">
+                        <option value="">&#8212; Opcional &#8212;</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Grabado</label>
+                    <input type="text" name="engraving" class="form-control" value="{{ customization.engraving|default:'' }}">
+                </div>
+                <div class="col-12">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Instrucciones especiales</label>
+                    <textarea name="special_instructions" class="form-control" rows="3">{{ customization.special_instructions|default:'' }}</textarea>
+                </div>
+                {% if user.is_admin %}
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Técnico asignado</label>
+                    <select name="assigned_technician" class="form-select">
+                        <option value="">— Sin asignar —</option>
+                        {% for t in technicians %}
+                        <option value="{{ t }}" {% if customization.assigned_technician == t %}selected{% endif %}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Estado *</label>
+                    <select name="status" class="form-select" required>
+                        <option value="pending" {% if customization.status == 'pending' %}selected{% endif %}>Pendiente</option>
+                        <option value="in_progress" {% if customization.status == 'in_progress' %}selected{% endif %}>En Proceso</option>
+                        <option value="completed" {% if customization.status == 'completed' %}selected{% endif %}>Completada</option>
+                        <option value="cancelled" {% if customization.status == 'cancelled' %}selected{% endif %}>Cancelada</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Precio estimado</label>
+                    <input type="number" name="estimated_price" class="form-control" step="0.01" min="0" value="{{ customization.estimated_price|default:'' }}">
+                </div>
+                <div class="col-12">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Notas del administrador</label>
+                    <textarea name="admin_notes" class="form-control" rows="3">{{ customization.admin_notes|default:'' }}</textarea>
+                </div>
+                {% endif %}
+            </div>
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-gold">Guardar cambios</button>
+                <a href="{% url 'customization_show' pk=customization.id %}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const SIZES = {
+    'Anillo':   ['Talla 4','Talla 5','Talla 6','Talla 7','Talla 8','Talla 9','Talla 10','Talla 11','Talla 12','Talla 13','Talla 14','Medida personalizada'],
+    'Collar':   ['40 cm','42 cm','45 cm','50 cm','55 cm','60 cm','70 cm','Medida personalizada'],
+    'Pulsera':  ['14 cm','15 cm','16 cm','17 cm','18 cm','19 cm','20 cm','21 cm','Medida personalizada'],
+    'Aretes':   ['Pequeños (1 cm)','Medianos (2 cm)','Grandes (3 cm)','Extra grandes (4+ cm)','Medida personalizada'],
+    'Reloj':    ['36 mm','38 mm','40 mm','41 mm','42 mm','44 mm','46 mm','Medida personalizada'],
+};
+const DEFAULT = ['XS','S','M','L','XL','Medida personalizada'];
+
+function updateSizes(type, current) {
+    const sel = document.getElementById('size');
+    const opts = SIZES[type] || DEFAULT;
+    sel.innerHTML = '<option value="">— Opcional —</option>';
+    opts.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        if (o === current) opt.selected = true;
+        sel.appendChild(opt);
+    });
+}
+
+const currentSize = "{{ customization.size|default:'' }}";
+const initType = document.querySelector('[name=jewelry_type]').value;
+if (initType) updateSizes(initType, currentSize);
+
+document.querySelector('[name=jewelry_type]').addEventListener('change', function() {
+    updateSizes(this.value, '');
+});
+</script>
+{% endblock %}

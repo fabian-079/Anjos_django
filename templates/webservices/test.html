@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Estado de servicios - ANJOS{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'webservice_dashboard' %}" class="text-decoration-none small" style="color:var(--gold)">
+            <i class="bi bi-arrow-left me-1"></i> Precios y cotizaciones
+        </a>
+        <h2 class="section-title mb-0 mt-1">Estado de servicios</h2>
+    </div>
+</div>
+
+<p class="text-muted mb-4">Verifica que las funciones de consulta de precios y envíos estén funcionando correctamente.</p>
+
+<div class="row g-3">
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm p-4 d-flex flex-row align-items-center gap-3">
+            {% if exchange_rates %}
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;background:#d4edda">
+                <i class="bi bi-check-circle-fill" style="color:#2d7d2d"></i>
+            </div>
+            {% else %}
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;background:#f8d7da">
+                <i class="bi bi-x-circle-fill" style="color:#c0392b"></i>
+            </div>
+            {% endif %}
+            <div>
+                <p class="fw-bold mb-0">Consulta de tasas de cambio</p>
+                <p class="small text-muted mb-0">Permite ver precios en distintas monedas</p>
+                {% if exchange_rates %}
+                <span class="badge mt-1" style="background:#d4edda;color:#2d7d2d">Funcionando</span>
+                {% else %}
+                <span class="badge mt-1" style="background:#f8d7da;color:#c0392b">No disponible ahora</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm p-4 d-flex flex-row align-items-center gap-3">
+            {% if gold_price and gold_price.price %}
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;background:#fff8e1">
+                <i class="bi bi-gem" style="color:var(--gold-dark)"></i>
+            </div>
+            {% else %}
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;background:#f8d7da">
+                <i class="bi bi-gem" style="color:#c0392b"></i>
+            </div>
+            {% endif %}
+            <div>
+                <p class="fw-bold mb-0">Precio del oro en tiempo real</p>
+                <p class="small text-muted mb-0">Muestra el valor actual del oro en el mercado</p>
+                {% if gold_price and gold_price.price %}
+                <span class="badge mt-1" style="background:#fff8e1;color:#b8860b">Funcionando &mdash; ${{ gold_price.price }} {{ gold_price.currency }}</span>
+                {% else %}
+                <span class="badge mt-1" style="background:#f8d7da;color:#c0392b">No disponible ahora</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm p-4 d-flex flex-row align-items-center gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:48px;height:48px;background:#d4edda">
+                <i class="bi bi-arrow-left-right" style="color:#2d7d2d"></i>
+            </div>
+            <div>
+                <p class="fw-bold mb-0">Conversión de monedas</p>
+                <p class="small text-muted mb-0">Convierte montos entre diferentes monedas</p>
+                <span class="badge mt-1" style="background:#d4edda;color:#2d7d2d">Disponible</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm p-4 d-flex flex-row align-items-center gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:48px;height:48px;background:#d4edda">
+                <i class="bi bi-truck" style="color:#2d7d2d"></i>
+            </div>
+            <div>
+                <p class="fw-bold mb-0">Cálculo de envíos</p>
+                <p class="small text-muted mb-0">Estima el costo de envío entre ciudades</p>
+                <span class="badge mt-1" style="background:#d4edda;color:#2d7d2d">Disponible</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<p class="text-muted small mt-4">Si alguno de estos servicios muestra "No disponible", la información de precios puede estar temporalmente desactualizada. Esto no afecta el funcionamiento general de la tienda.</p>
+
+{% endblock %}

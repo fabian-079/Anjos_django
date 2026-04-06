@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Editar servicio - ANJOS{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <a href="{% url 'repair_show' pk=repair.id %}" class="text-decoration-none small d-block mb-3" style="color:var(--gold)">
+            <i class="bi bi-arrow-left me-1"></i> Ver servicio
+        </a>
+        <h2 class="section-title">Editar servicio {{ repair.repair_number }}</h2>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" action="{% url 'repair_update' pk=repair.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Cliente *</label>
+                            <input type="text" name="customer_name" class="form-control" value="{{ repair.customer_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Teléfono *</label>
+                            <input type="text" name="phone" class="form-control" value="{{ repair.phone }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Descripción *</label>
+                            <textarea name="description" class="form-control" rows="3" required>{{ repair.description }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Estado</label>
+                            <select name="status" class="form-select">
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if repair.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Costo estimado</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" name="estimated_cost" class="form-control" step="0.01" value="{{ repair.estimated_cost|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Técnico asignado</label>
+                            <select name="assigned_technician_text" class="form-select">
+                                <option value="">— Sin asignar —</option>
+                                {% for t in technicians %}
+                                <option value="{{ t }}" {% if repair.assigned_technician_text == t %}selected{% endif %}>{{ t }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Observaciones técnicas</label>
+                            <textarea name="technician_notes" class="form-control" rows="2">{{ repair.technician_notes|default:'' }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Notas generales</label>
+                            <textarea name="notes" class="form-control" rows="2">{{ repair.notes|default:'' }}</textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Actualizar foto</label>
+                            <input type="file" name="image_file" class="form-control" accept="image/*">
+                        </div>
+                        <div class="col-12 d-flex gap-2 mt-2">
+                            <button type="submit" class="btn btn-gold flex-grow-1">Guardar cambios</button>
+                            <a href="{% url 'repair_show' pk=repair.id %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

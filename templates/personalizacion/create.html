@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Solicitar diseño a medida - ANJOS{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <a href="{% url 'customization_index' %}" class="text-decoration-none small d-block mb-3" style="color:var(--gold)">
+            <i class="bi bi-arrow-left me-1"></i> Mis diseños
+        </a>
+        <div class="text-center mb-4">
+            <i class="bi bi-palette fs-2" style="color:var(--gold)"></i>
+            <h2 class="mt-2 section-title d-inline-block ms-2">Diseño a medida</h2>
+            <p class="text-muted small">Crea tu pieza única. Nuestro equipo te contactará con una propuesta.</p>
+        </div>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" action="{% url 'customization_create' %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Tipo de pieza *</label>
+                            <select name="jewelry_type" class="form-select" required>
+                                <option value="" disabled selected>Seleccionar tipo de pieza</option>
+                                <option value="Anillo">Anillo</option>
+                                <option value="Collar">Collar</option>
+                                <option value="Pulsera">Pulsera</option>
+                                <option value="Aretes">Aretes</option>
+                                <option value="Reloj">Reloj</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Material *</label>
+                            <select name="material" class="form-select" required>
+                                <option value="" disabled selected>Seleccionar material</option>
+                                <option value="Oro">Oro</option>
+                                <option value="Plata">Plata</option>
+                                <option value="Platino">Platino</option>
+                                <option value="Acero Inoxidable">Acero Inoxidable</option>
+                                <option value="Oro Blanco">Oro Blanco</option>
+                                <option value="Oro Rosa">Oro Rosa</option>
+                                <option value="Oro Amarillo">Oro Amarillo</option>
+                                <option value="Titanio">Titanio</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Descripción del diseño *</label>
+                            <input type="text" name="design" class="form-control" required placeholder="Cómo imaginas tu pieza...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Color *</label>
+                            <select name="color" class="form-select" required>
+                                <option value="" disabled selected>Seleccionar color</option>
+                                <option value="Dorado">Dorado</option>
+                                <option value="Plateado">Plateado</option>
+                                <option value="Rosa">Rosa</option>
+                                <option value="Blanco">Blanco</option>
+                                <option value="Negro">Negro</option>
+                                <option value="Multicolor">Multicolor</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Acabado *</label>
+                            <select name="finish" class="form-select" required>
+                                <option value="" disabled selected>Seleccionar acabado</option>
+                                <option value="Brillante">Brillante</option>
+                                <option value="Mate">Mate</option>
+                                <option value="Satinado">Satinado</option>
+                                <option value="Pulido">Pulido</option>
+                                <option value="Texturizado">Texturizado</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Piedras *</label>
+                            <select name="stones" class="form-select" required>
+                                <option value="" disabled selected>Seleccionar piedras</option>
+                                <option value="Sin piedras">Sin piedras</option>
+                                <option value="Diamante">Diamante</option>
+                                <option value="Rubí">Rubí</option>
+                                <option value="Zafiro">Zafiro</option>
+                                <option value="Esmeralda">Esmeralda</option>
+                                <option value="Perla">Perla</option>
+                                <option value="Amatista">Amatista</option>
+                                <option value="Topacio">Topacio</option>
+                                <option value="Cuarzo">Cuarzo</option>
+                                <option value="Cristal">Cristal</option>
+                                <option value="Circonita">Circonita</option>
+                                <option value="Mixto">Mixto</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Talla / Tamaño</label>
+                            <select name="size" id="size" class="form-select">
+                                <option value="">— Seleccionar tipo primero —</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Grabado</label>
+                            <input type="text" name="engraving" class="form-control" placeholder="Texto (opcional)">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Instrucciones especiales</label>
+                            <textarea name="special_instructions" class="form-control" rows="3" placeholder="Cualquier detalle adicional que quieras compartir..."></textarea>
+                        </div>
+                        <div class="col-12 d-flex gap-2 mt-2">
+                            <button type="submit" class="btn btn-gold flex-grow-1">Enviar solicitud de diseño</button>
+                            <a href="{% url 'customization_index' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const SIZES = {
+    'Anillo':   ['Talla 4','Talla 5','Talla 6','Talla 7','Talla 8','Talla 9','Talla 10','Talla 11','Talla 12','Talla 13','Talla 14','Medida personalizada'],
+    'Collar':   ['40 cm','42 cm','45 cm','50 cm','55 cm','60 cm','70 cm','Medida personalizada'],
+    'Pulsera':  ['14 cm','15 cm','16 cm','17 cm','18 cm','19 cm','20 cm','21 cm','Medida personalizada'],
+    'Aretes':   ['Pequeños (1 cm)','Medianos (2 cm)','Grandes (3 cm)','Extra grandes (4+ cm)','Medida personalizada'],
+    'Reloj':    ['36 mm','38 mm','40 mm','41 mm','42 mm','44 mm','46 mm','Medida personalizada'],
+};
+const DEFAULT = ['XS','S','M','L','XL','Medida personalizada'];
+
+function updateSizes(type, current) {
+    const sel = document.getElementById('size');
+    const opts = SIZES[type] || DEFAULT;
+    sel.innerHTML = '<option value="">— Opcional —</option>';
+    opts.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        if (o === current) opt.selected = true;
+        sel.appendChild(opt);
+    });
+}
+
+document.querySelector('[name=jewelry_type]').addEventListener('change', function() {
+    updateSizes(this.value, '');
+});
+
+// init on load
+const initType = document.querySelector('[name=jewelry_type]').value;
+if (initType) updateSizes(initType, '');
+</script>
+{% endblock %}

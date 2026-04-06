@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Búsqueda avanzada - ANJOS{% endblock %}
+{% block content %}
+<h2 class="section-title">Búsqueda avanzada</h2>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <form method="get" action="{% url 'buscar' %}">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Buscar por nombre o descripción</label>
+                    <input type="text" name="q" class="form-control" value="{{ request.GET.q|default:'' }}" placeholder="Buscar productos...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Categoría</label>
+                    <select name="category" class="form-select">
+                        <option value="">Todas las categorías</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Material</label>
+                    <select name="material" class="form-select">
+                        <option value="">Todos los materiales</option>
+                        {% for m in materials %}
+                        <option value="{{ m }}" {% if request.GET.material == m %}selected{% endif %}>{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Color</label>
+                    <select name="color" class="form-select">
+                        <option value="">Todos los colores</option>
+                        {% for c in colors %}
+                        <option value="{{ c }}" {% if request.GET.color == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Acabado</label>
+                    <select name="finish" class="form-select">
+                        <option value="">Todos los acabados</option>
+                        {% for f in finishes %}
+                        <option value="{{ f }}" {% if request.GET.finish == f %}selected{% endif %}>{{ f }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Piedras</label>
+                    <select name="stones" class="form-select">
+                        <option value="">Todas las piedras</option>
+                        {% for s in stones %}
+                        <option value="{{ s }}" {% if request.GET.stones == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Precio mínimo</label>
+                    <input type="number" name="minPrice" class="form-control" step="0.01" min="0" value="{{ request.GET.minPrice|default:'' }}" placeholder="0.00">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Precio máximo</label>
+                    <input type="number" name="maxPrice" class="form-control" step="0.01" min="0" value="{{ request.GET.maxPrice|default:'' }}" placeholder="0.00">
+                </div>
+                <div class="col-md-6 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-gold"><i class="bi bi-search me-1"></i> Buscar</button>
+                    <a href="{% url 'buscar' %}" class="btn btn-outline-secondary">Limpiar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if total_items is not None %}
+<p class="text-muted small mb-3">
+    <strong>{{ total_items }}</strong> pieza{{ total_items|pluralize }} encontrada{{ total_items|pluralize }}
+    {% if search_query %} para "<strong>{{ search_query }}</strong>"{% endif %}
+</p>
+{% endif %}
+
+{% if products %}
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4 mb-4">
+    {% for product in products %}
+    <div class="col">
+        <div class="product-card h-100">
+            <img src="{{ product.image_url }}" class="card-img-top product-img-card" alt="{{ product.name }}">
+            <div class="card-body px-3 pt-2 pb-2">
+                <h6 class="mb-1" style="font-size:.93rem">{{ product.name }}</h6>
+                <p class="price mb-0">${{ product.price|floatformat:0 }}</p>
+            </div>
+            <div class="card-footer bg-transparent border-0 px-3 pb-3 pt-0">
+                <a href="{% url 'producto_detalle' pk=product.id %}" class="btn btn-outline-dark btn-sm w-100">Ver pieza</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if total_pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if current_page > 0 %}
+        <li class="page-item">
+            <a class="page-link" href="?q={{ request.GET.q }}&category={{ request.GET.category }}&material={{ request.GET.material }}&color={{ request.GET.color }}&finish={{ request.GET.finish }}&stones={{ request.GET.stones }}&minPrice={{ request.GET.minPrice }}&maxPrice={{ request.GET.maxPrice }}&page={{ current_page|add:"-1" }}">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+        </li>
+        {% endif %}
+        <li class="page-item disabled">
+            <span class="page-link">Página {{ current_page|add:"1" }} de {{ total_pages }}</span>
+        </li>
+        {% if current_page < total_pages|add:"-1" %}
+        <li class="page-item">
+            <a class="page-link" href="?q={{ request.GET.q }}&category={{ request.GET.category }}&material={{ request.GET.material }}&color={{ request.GET.color }}&finish={{ request.GET.finish }}&stones={{ request.GET.stones }}&minPrice={{ request.GET.minPrice }}&maxPrice={{ request.GET.maxPrice }}&page={{ current_page|add:"1" }}">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% elif request.GET %}
+<div class="text-center py-5">
+    <i class="bi bi-gem fs-1" style="color:#ddd"></i>
+    <h5 class="mt-3 text-muted">Sin resultados</h5>
+    <p class="text-muted small">No encontramos piezas con esos criterios. Intenta con otros filtros.</p>
+    <a href="{% url 'buscar' %}" class="btn btn-gold mt-2">Limpiar filtros</a>
+</div>
+{% endif %}
+{% endblock %}

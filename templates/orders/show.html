@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load anjos_filters %}
+{% block title %}Pedido {{ order.order_number }} - ANJOS{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'order_index' %}" class="text-decoration-none small" style="color:var(--gold)">
+            <i class="bi bi-arrow-left me-1"></i> Mis pedidos
+        </a>
+        <h2 class="section-title mb-0 mt-1">Pedido {{ order.order_number }}</h2>
+    </div>
+    {% if user.is_admin %}
+    <a href="{% url 'order_edit_form' pk=order.id %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-pencil me-1"></i> Editar pedido
+    </a>
+    {% endif %}
+</div>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead><tr><th>Pieza</th><th>Precio unit.</th><th>Cant.</th><th>Total</th></tr></thead>
+                    <tbody>
+                        {% for item in order.items %}
+                        <tr>
+                            <td class="fw-bold">{{ item.product_name }}</td>
+                            <td>${{ item.price|floatformat:0 }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>${{ item.subtotal|floatformat:0 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm mb-3 p-3">
+            <h6 class="mb-3" style="font-family:'Playfair Display',serif">Resumen del pedido</h6>
+            <div class="d-flex justify-content-between mb-2 small">
+                <span class="text-muted">Estado</span>
+                <span class="badge rounded-pill px-3" style="background:#f5f5f5;color:#555">{{ order.status|status_es }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2 small">
+                <span class="text-muted">Método de pago</span>
+                <span>{{ order.payment_method }}</span>
+            </div>
+            <hr class="my-2">
+            <div class="d-flex justify-content-between mb-1 small">
+                <span class="text-muted">Subtotal</span><span>${{ order.subtotal|floatformat:0 }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2 small">
+                <span class="text-muted">IVA</span><span>${{ order.tax|floatformat:0 }}</span>
+            </div>
+            <div class="d-flex justify-content-between fw-bold">
+                <span>Total</span><span style="color:var(--dark)">${{ order.total|floatformat:0 }}</span>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm p-3">
+            <h6 class="mb-3" style="font-family:'Playfair Display',serif">Datos de envío</h6>
+            <p class="small mb-1"><span class="text-muted">Dirección:</span> {{ order.shipping_address }}</p>
+            <p class="small mb-1"><span class="text-muted">Teléfono:</span> {{ order.phone }}</p>
+            {% if order.notes %}<p class="small mb-0"><span class="text-muted">Notas:</span> {{ order.notes }}</p>{% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
