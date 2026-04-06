@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 
 
+
 def admin_required(view_func):
     @wraps(view_func)
     @login_required
