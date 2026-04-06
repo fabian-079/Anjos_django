@@ -3,7 +3,6 @@ from django.shortcuts import render, redirect
 from adapters.api.decorators import admin_required
 from infrastructure.container import get_category_usecases
 
-
 @admin_required
 def category_index(request):
     return render(request, 'categories/index.html', {
@@ -14,7 +13,6 @@ def category_index(request):
 @admin_required
 def category_create_form(request):
     return render(request, 'categories/create.html')
-
 
 @admin_required
 def category_create(request):
@@ -32,7 +30,6 @@ def category_create(request):
     except Exception as e:
         messages.error(request, f'Error: {e}')
     return redirect('category_index')
-
 
 @admin_required
 def category_edit_form(request, pk):
