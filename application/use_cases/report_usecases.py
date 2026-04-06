@@ -31,7 +31,6 @@ _CHART_COLORS = [
     colors.HexColor('#16a085'), colors.HexColor('#2c3e50'),
 ]
 
-
 def _pie(labels, data, w=360, h=210):
     if not data or sum(data) == 0:
         return None
