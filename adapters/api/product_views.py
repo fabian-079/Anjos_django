@@ -19,12 +19,14 @@ def product_index(request):
     })
 
 
+
 @admin_required
 def product_create_form(request):
     categories_uc = get_category_usecases()
     return render(request, 'products/create.html', {
         'categories': categories_uc.get_active(),
     })
+
 
 
 @admin_required
