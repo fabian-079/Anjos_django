@@ -4,6 +4,7 @@ from typing import List, Optional
 from domain.entities.product import ProductEntity
 
 
+
 class ProductRepository(ABC):
 
     @abstractmethod
