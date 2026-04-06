@@ -2,8 +2,6 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from infrastructure.container import get_favorite_usecases
 
-
-
 def favoritos_view(request):
     if request.user.is_authenticated:
         favorites = get_favorite_usecases().get_user_favorites(request.user.id)
