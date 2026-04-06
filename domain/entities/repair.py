@@ -12,6 +12,7 @@ class RepairStatus:
     COMPLETED = 'COMPLETED'
     CANCELLED = 'CANCELLED'
 
+    
     CHOICES = [
         (PENDING, 'Pendiente'),
         (QUOTED, 'Cotizado'),
