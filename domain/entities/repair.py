@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Optional
 
 
+
 class RepairStatus:
     PENDING = 'PENDING'
     QUOTED = 'QUOTED'
