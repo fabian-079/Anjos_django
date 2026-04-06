@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Optional
 
 
+
 @dataclass
 class ProductEntity:
     id: Optional[int] = None
@@ -24,6 +25,7 @@ class ProductEntity:
     category_name: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    
 
     def get_image_url(self) -> str:
         if self.image:
