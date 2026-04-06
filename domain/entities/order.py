@@ -11,6 +11,7 @@ class OrderStatus:
     DELIVERED = 'DELIVERED'
     CANCELLED = 'CANCELLED'
 
+    
     CHOICES = [
         (PENDING, 'Pendiente'),
         (PROCESSING, 'En proceso'),
@@ -46,6 +47,7 @@ class OrderItemEntity:
     @property
     def subtotal(self) -> Decimal:
         return self.price * self.quantity
+
 
 
 @dataclass
