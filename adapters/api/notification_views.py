@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 from infrastructure.container import get_notification_usecases
 
 
+
 @login_required
 def notification_index(request):
     uc = get_notification_usecases()
