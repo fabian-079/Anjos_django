@@ -32,6 +32,7 @@ class OrderUseCases:
     def get_by_order_number(self, order_number: str) -> Optional[OrderEntity]:
         return self._order_repo.find_by_order_number(order_number)
 
+    
     def create_order(self, user_id: int, shipping_address: str, billing_address: str,
                      phone: str, payment_method: str, notes: str = None) -> OrderEntity:
         cart_items = self._cart_repo.find_by_user(user_id)
