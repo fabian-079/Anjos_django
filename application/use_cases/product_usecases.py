@@ -4,7 +4,6 @@ from domain.entities.product import ProductEntity
 from domain.repositories.product_repository import ProductRepository
 from domain.repositories.category_repository import CategoryRepository
 
-
 class ProductUseCases:
     def __init__(self, product_repo: ProductRepository, category_repo: CategoryRepository):
         self._repo = product_repo
