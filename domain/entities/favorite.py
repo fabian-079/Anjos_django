@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 
+
 @dataclass
 class FavoriteEntity:
     id: Optional[int] = None
