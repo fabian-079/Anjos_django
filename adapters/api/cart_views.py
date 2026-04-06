@@ -3,7 +3,6 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from infrastructure.container import get_cart_usecases
 
-
 def cart_view(request):
     if request.user.is_authenticated:
         uc = get_cart_usecases()
