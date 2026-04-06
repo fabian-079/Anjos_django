@@ -4,6 +4,7 @@ from domain.repositories.user_repository import UserRepository
 from infrastructure.models.user_model import User, Role
 
 
+
 def _to_entity(user: User) -> UserEntity:
     return UserEntity(
         id=user.id,
