@@ -28,6 +28,7 @@ def customization_show(request, pk):
     return render(request, 'personalizacion/show.html', {'customization': item, 'can_edit': can_edit})
 
 
+
 @login_required
 def customization_create_form(request):
     return render(request, 'personalizacion/create.html')
@@ -56,6 +57,7 @@ def customization_create(request):
     except Exception as e:
         messages.error(request, f'Error: {e}')
         return render(request, 'personalizacion/create.html')
+
 
 
 @login_required
