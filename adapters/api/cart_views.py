@@ -51,7 +51,6 @@ def cart_remove(request, pk):
             request.session['guest_cart'] = guest_cart
     return redirect('carrito')
 
-
 def _guest_cart_items(request):
     from infrastructure.container import get_product_usecases
     guest_cart = request.session.get('guest_cart', {})
