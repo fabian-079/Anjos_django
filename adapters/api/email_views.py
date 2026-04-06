@@ -5,10 +5,13 @@ from adapters.api.decorators import admin_required
 from infrastructure.container import get_email_usecases, get_user_usecases
 
 
+
 @admin_required
 def email_mass_send_form(request):
     """Formulario para envío masivo de correos"""
     return render(request, 'emails/mass_send.html')
+
+
 
 
 @admin_required
@@ -69,6 +72,7 @@ def email_new_products_notification(request):
         messages.success(request, f'Notificación enviada a {count} clientes.')
     
     return redirect('product_index')
+
 
 
 @login_required
