@@ -1,11 +1,14 @@
 import os
+import dj_database_url
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
-SECRET_KEY = 'django-insecure-anjos-jewelry-store-secret-key-change-in-production'
+# Lee la clave segura de Railway; si no existe, usa la de respaldo local
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-anjos-jewelry-store-secret-key-change-in-production')
 
-DEBUG = True
+# Lee la variable de Railway; si no está definida, por defecto es True para desarrollo local
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -56,16 +59,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'anjos_db',
-        'USER': 'postgres',
-        'PASSWORD': '123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+# Configuración inteligente de Base de Datos para Producción y Local
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,
+            ssl_require=True
+        )
     }
-}
+else:
+    # Tus credenciales locales por defecto
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'anjos_db',
+            'USER': 'postgres',
+            'PASSWORD': '123',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 AUTH_USER_MODEL = 'infrastructure.User'
 
