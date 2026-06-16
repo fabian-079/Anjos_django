@@ -125,3 +125,8 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'ANJOS <anjoscorreos@g
 
 EXCHANGE_RATE_API_KEY = os.environ.get('EXCHANGE_RATE_API_KEY', '')
 EXCHANGE_RATE_API_URL = 'https://api.exchangerate-api.com/v4/latest/USD'
+
+# Confiar en el dominio de Railway para las peticiones de formularios seguros
+CSRF_TRUSTED_ORIGINS = [
+    'https://anjosdjango-production.up.railway.app',
+]
