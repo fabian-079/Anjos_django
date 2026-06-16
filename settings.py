@@ -7,7 +7,13 @@ SECRET_KEY = 'django-insecure-anjos-jewelry-store-secret-key-change-in-productio
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.localhost',
+    'anjosdjango-production.up.railway.app',
+    '*.up.railway.app',
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
