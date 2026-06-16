@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Nuevo usuario - ANJOS{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <a href="{% url 'user_index' %}" class="text-decoration-none small d-block mb-3" style="color:var(--gold)">
+            <i class="bi bi-arrow-left me-1"></i> Clientes
+        </a>
+        <h2 class="section-title">Agregar usuario</h2>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" action="{% url 'user_create' %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Nombre *</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Correo electrónico *</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Contraseña *</label>
+                            <input type="password" name="password" class="form-control" required minlength="6">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Teléfono</label>
+                            <input type="text" name="phone" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Rol</label>
+                            <select name="role" class="form-select">
+                                {% for role in roles %}<option value="{{ role.name }}">{{ role.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Dirección</label>
+                            <input type="text" name="address" class="form-control">
+                        </div>
+                        <div class="col-12 d-flex gap-2 mt-2">
+                            <button type="submit" class="btn btn-gold flex-grow-1">Guardar usuario</button>
+                            <a href="{% url 'user_index' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

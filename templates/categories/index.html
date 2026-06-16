@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Categorías - ANJOS{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="section-title mb-0">Categorías</h2>
+    <a href="{% url 'category_create_form' %}" class="btn btn-gold">
+        <i class="bi bi-plus me-1"></i> Nueva categoría
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <table class="table mb-0">
+        <thead>
+            <tr><th>Nombre</th><th>Descripción</th><th>Estado</th><th></th></tr>
+        </thead>
+        <tbody>
+            {% for cat in categories %}
+            <tr>
+                <td class="fw-bold">
+                    <i class="bi bi-tag me-2" style="color:var(--gold)"></i>{{ cat.name }}
+                </td>
+                <td class="text-muted small">{{ cat.description|default:'-'|truncatewords:10 }}</td>
+                <td>
+                    {% if cat.is_active %}
+                    <span class="badge rounded-pill px-3" style="background:#d4edda;color:#155724">Activa</span>
+                    {% else %}
+                    <span class="badge rounded-pill px-3" style="background:#f5f5f5;color:#555">Inactiva</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <a href="{% url 'category_edit_form' pk=cat.id %}" class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-pencil"></i></a>
+                    <form method="post" action="{% url 'category_delete' pk=cat.id %}" class="d-inline" onsubmit="return confirm('¿Desactivar esta categoría?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center py-5 text-muted">
+                <i class="bi bi-tags fs-2 d-block mb-2" style="color:#ddd"></i>
+                No hay categorías registradas
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+.venv/
+venv/
+*.pyc
+__pycache__/
+db.sqlite3
+.git/
+.gitignore
+datos_anjos.json

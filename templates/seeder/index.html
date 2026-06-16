@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block title %}Carga Masiva de Datos - ANJOS{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'dashboard_admin' %}" class="text-decoration-none small" style="color:var(--gold)">← Volver al panel</a>
+        <h2 class="section-title mb-0 mt-1">Carga masiva de datos</h2>
+    </div>
+    <span class="badge rounded-pill text-white px-3 py-2" style="background:#6f42c1;font-size:.8rem">
+        <i class="bi bi-database-fill-add me-1"></i>Seeder
+    </span>
+</div>
+
+{% if messages %}
+<div class="mb-4">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show border-0 shadow-sm" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ── Sección 1: Carga rápida predefinida ─────────────────────────────── -->
+<h5 class="mb-3" style="font-family:'Playfair Display',serif">
+    <i class="bi bi-lightning-charge-fill me-2" style="color:var(--gold)"></i>Carga rápida (datos predefinidos)
+</h5>
+<div class="card border-0 shadow-sm mb-5">
+    <div class="card-body p-4">
+        <p class="text-muted small mb-4">Inserta datos de muestra predefinidos. Los registros ya existentes no se duplicarán.</p>
+        <form method="POST" action="{% url 'seeder_run' %}">
+            {% csrf_token %}
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="d-flex gap-3 align-items-start p-3 rounded h-100" style="border:2px solid #e5e5e5;cursor:pointer;transition:.2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='#e5e5e5'">
+                        <input class="form-check-input flex-shrink-0 mt-1" type="checkbox" name="sections" value="categories" checked>
+                        <span>
+                            <i class="bi bi-tags fs-4 d-block mb-1" style="color:var(--gold)"></i>
+                            <strong>Categorías</strong>
+                            <small class="d-block text-muted mt-1">Anillos, Collares, Pulseras, Aretes, Relojes, Dijes<br><span class="badge bg-light text-dark border mt-1">6 registros</span></small>
+                        </span>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    <label class="d-flex gap-3 align-items-start p-3 rounded h-100" style="border:2px solid #e5e5e5;cursor:pointer;transition:.2s" onmouseover="this.style.borderColor='#3a5bd9'" onmouseout="this.style.borderColor='#e5e5e5'">
+                        <input class="form-check-input flex-shrink-0 mt-1" type="checkbox" name="sections" value="products" checked>
+                        <span>
+                            <i class="bi bi-gem fs-4 d-block mb-1" style="color:#3a5bd9"></i>
+                            <strong>Productos de ejemplo</strong>
+                            <small class="d-block text-muted mt-1">12 joyas con precio, stock y categoría asignada<br><span class="badge bg-light text-dark border mt-1">12 registros</span></small>
+                        </span>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    <label class="d-flex gap-3 align-items-start p-3 rounded h-100" style="border:2px solid #e5e5e5;cursor:pointer;transition:.2s" onmouseover="this.style.borderColor='#2d7d2d'" onmouseout="this.style.borderColor='#e5e5e5'">
+                        <input class="form-check-input flex-shrink-0 mt-1" type="checkbox" name="sections" value="users">
+                        <span>
+                            <i class="bi bi-person-plus fs-4 d-block mb-1" style="color:#2d7d2d"></i>
+                            <strong>Usuario de prueba</strong>
+                            <small class="d-block text-muted mt-1">cliente@test.com / cliente123<br><span class="badge bg-light text-dark border mt-1">1 registro</span></small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="btn text-white fw-bold px-4" style="background:#6f42c1">
+                <i class="bi bi-play-fill me-1"></i>Cargar datos seleccionados
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ── Sección 2: Carga desde archivo ─────────────────────────────────── -->
+<h5 class="mb-3" style="font-family:'Playfair Display',serif">
+    <i class="bi bi-file-earmark-arrow-up me-2" style="color:#1a5276"></i>Carga desde archivo (CSV / Excel)
+</h5>
+<div class="row g-4 mb-5">
+
+    <!-- Categorías desde archivo -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header border-0 pb-0 pt-4 px-4" style="background:transparent">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-tags me-2" style="color:var(--gold)"></i>Categorías</h6>
+                    <a href="{% url 'seeder_template_download' %}?type=categories" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-download me-1"></i>Plantilla CSV
+                    </a>
+                </div>
+            </div>
+            <div class="card-body px-4 pb-4">
+                <p class="text-muted small mt-2 mb-3">Columnas requeridas: <code>nombre</code>, <code>descripcion</code>, <code>activo</code></p>
+                <form method="POST" action="{% url 'seeder_upload_csv' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="data_type" value="categories">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Archivo CSV o Excel (.xlsx)</label>
+                        <input type="file" name="file" accept=".csv,.xlsx,.xls" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn w-100 text-white fw-bold" style="background:var(--gold)">
+                        <i class="bi bi-upload me-1"></i>Importar categorías
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos desde archivo -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header border-0 pb-0 pt-4 px-4" style="background:transparent">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-gem me-2" style="color:#3a5bd9"></i>Productos</h6>
+                    <a href="{% url 'seeder_template_download' %}?type=products" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-download me-1"></i>Plantilla CSV
+                    </a>
+                </div>
+            </div>
+            <div class="card-body px-4 pb-4">
+                <p class="text-muted small mt-2 mb-3">
+                    Columnas: <code>nombre</code>, <code>descripcion</code>, <code>precio</code>, <code>stock</code>, <code>categoria</code>
+                    <span class="text-muted">(+ opcionales: material, color, acabado, piedras, talla, destacado, activo)</span>
+                </p>
+                <div class="alert border-0 py-2 px-3 mb-3" style="background:#fff8e1;font-size:.8rem">
+                    <i class="bi bi-info-circle me-1" style="color:#c8960a"></i>
+                    El campo <code>categoria</code> debe coincidir exactamente con el nombre de una categoría existente.
+                </div>
+                <form method="POST" action="{% url 'seeder_upload_csv' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="data_type" value="products">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Archivo CSV o Excel (.xlsx)</label>
+                        <input type="file" name="file" accept=".csv,.xlsx,.xls" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn w-100 text-white fw-bold" style="background:#3a5bd9">
+                        <i class="bi bi-upload me-1"></i>Importar productos
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Referencia de columnas ─────────────────────────────────────────── -->
+<h5 class="mb-3" style="font-family:'Playfair Display',serif">
+    <i class="bi bi-table me-2" style="color:#555"></i>Referencia de columnas
+</h5>
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">Categorías</h6>
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Columna</th><th>Tipo</th><th>Requerido</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>nombre</code></td><td>Texto</td><td><span class="badge bg-danger">Sí</span></td></tr>
+                        <tr><td><code>descripcion</code></td><td>Texto</td><td><span class="badge bg-secondary">No</span></td></tr>
+                        <tr><td><code>activo</code></td><td>Si / No</td><td><span class="badge bg-secondary">No</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">Productos</h6>
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Columna</th><th>Tipo</th><th>Requerido</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>nombre</code></td><td>Texto</td><td><span class="badge bg-danger">Sí</span></td></tr>
+                        <tr><td><code>categoria</code></td><td>Nombre exacto</td><td><span class="badge bg-danger">Sí</span></td></tr>
+                        <tr><td><code>precio</code></td><td>Número</td><td><span class="badge bg-danger">Sí</span></td></tr>
+                        <tr><td><code>stock</code></td><td>Entero</td><td><span class="badge bg-secondary">No</span></td></tr>
+                        <tr><td><code>descripcion</code></td><td>Texto</td><td><span class="badge bg-secondary">No</span></td></tr>
+                        <tr><td><code>material / color / acabado / piedras / talla</code></td><td>Texto</td><td><span class="badge bg-secondary">No</span></td></tr>
+                        <tr><td><code>destacado / activo</code></td><td>Si / No</td><td><span class="badge bg-secondary">No</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Vista Previa de Reportes - ANJOS{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">📄 Vista Previa de Reportes</h2>
+
+    <div class="alert alert-info">
+        <strong>Nota:</strong> Los reportes se generan en formato PDF profesional con tablas, gráficos y estadísticas detalladas.
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Ejemplo: Reporte de Ventas</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Contenido del Reporte:</h6>
+                    <ul>
+                        <li><strong>Encabezado:</strong> Título, período de análisis, fecha de generación</li>
+                        <li><strong>Estadísticas Generales:</strong>
+                            <ul>
+                                <li>Total de órdenes</li>
+                                <li>Ventas totales</li>
+                                <li>Promedio por orden</li>
+                            </ul>
+                        </li>
+                        <li><strong>Distribución por Estado:</strong> Tabla con cantidad de órdenes por estado</li>
+                        <li><strong>Top 10 Órdenes:</strong> Las órdenes más grandes del período</li>
+                        <li><strong>Pie de Página:</strong> Fecha y hora de generación</li>
+                    </ul>
+                    
+                    <div class="bg-light p-3 mt-3">
+                        <pre>
+┌─────────────────────────────────────────────┐
+│  Reporte de Ventas - ANJOS          │
+│  Período: 01/01/2024 - 31/01/2024           │
+├─────────────────────────────────────────────┤
+│                                             │
+│  ESTADÍSTICAS GENERALES                     │
+│  ┌──────────────────┬──────────┐            │
+│  │ Métrica          │ Valor    │            │
+│  ├──────────────────┼──────────┤            │
+│  │ Total Órdenes    │ 45       │            │
+│  │ Ventas Totales   │ $12.5M   │            │
+│  │ Promedio Orden   │ $278K    │            │
+│  └──────────────────┴──────────┘            │
+│                                             │
+│  ÓRDENES POR ESTADO                         │
+│  ┌──────────────┬──────────┐                │
+│  │ Estado       │ Cantidad │                │
+│  ├──────────────┼──────────┤                │
+│  │ PENDING      │ 12       │                │
+│  │ PROCESSING   │ 18       │                │
+│  │ DELIVERED    │ 15       │                │
+│  └──────────────┴──────────┘                │
+│                                             │
+│  TOP 10 ÓRDENES MÁS GRANDES                 │
+│  [Tabla detallada con clientes y montos]    │
+│                                             │
+└─────────────────────────────────────────────┘
+                        </pre>
+                    </div>
+
+                    <a href="{% url 'report_sales_pdf' %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-file-pdf"></i> Generar Reporte Real
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'reports_index' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a Reportes
+        </a>
+    </div>
+</div>
+{% endblock %}

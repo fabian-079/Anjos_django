@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% block title %}Informes y estadísticas - ANJOS{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="section-title mb-0">Informes y estadísticas</h2>
+    <a href="{% url 'dashboard_admin' %}" class="text-decoration-none small" style="color:var(--gold)">
+        <i class="bi bi-arrow-left me-1"></i> Volver al panel
+    </a>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-2">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <p class="text-muted small mb-1">Pedidos</p>
+            <h4 class="fw-bold mb-0" style="color:var(--gold)">{{ kpis.total_orders }}</h4>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <p class="text-muted small mb-1">Ingresos totales</p>
+            <h4 class="fw-bold mb-0" style="color:var(--gold)">${{ kpis.total_revenue|floatformat:0 }}</h4>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <p class="text-muted small mb-1">Productos</p>
+            <h4 class="fw-bold mb-0" style="color:#2d7d2d">{{ kpis.total_products }}</h4>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <p class="text-muted small mb-1">Stock bajo</p>
+            <h4 class="fw-bold mb-0" style="color:#c0392b">{{ kpis.low_stock }}</h4>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <p class="text-muted small mb-1">Reparaciones</p>
+            <h4 class="fw-bold mb-0" style="color:#3a5bd9">{{ kpis.total_repairs }}</h4>
+        </div>
+    </div>
+    <div class="col-6 col-md-1">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <p class="text-muted small mb-1">Pendientes</p>
+            <h4 class="fw-bold mb-0" style="color:#e67e22">{{ kpis.pending_repairs }}</h4>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficas -->
+<div class="row g-4 mb-4">
+
+    <!-- Ingresos por mes -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h6 class="mb-3 fw-bold" style="font-family:'Playfair Display',serif">
+                    <i class="bi bi-bar-chart-line me-2" style="color:var(--gold)"></i>Ingresos últimos 6 meses
+                </h6>
+                <canvas id="chartMonthly" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pedidos por estado -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h6 class="mb-3 fw-bold" style="font-family:'Playfair Display',serif">
+                    <i class="bi bi-pie-chart me-2" style="color:var(--gold)"></i>Pedidos por estado
+                </h6>
+                <canvas id="chartOrders"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock por categoría -->
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h6 class="mb-3 fw-bold" style="font-family:'Playfair Display',serif">
+                    <i class="bi bi-box-seam me-2" style="color:#2d7d2d"></i>Stock por categoría
+                </h6>
+                <canvas id="chartInventory" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reparaciones por estado -->
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h6 class="mb-3 fw-bold" style="font-family:'Playfair Display',serif">
+                    <i class="bi bi-tools me-2" style="color:#3a5bd9"></i>Reparaciones por estado
+                </h6>
+                <canvas id="chartRepairs"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Descargar PDFs -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <h6 class="mb-3 fw-bold" style="font-family:'Playfair Display',serif">
+            <i class="bi bi-file-earmark-pdf me-2" style="color:#c0392b"></i>Exportar informes PDF
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-5">
+                <form action="{% url 'report_sales_pdf' %}" method="get" class="d-flex gap-2 align-items-end">
+                    <div>
+                        <label class="form-label small mb-1">Desde</label>
+                        <input type="date" class="form-control form-control-sm" name="start_date">
+                    </div>
+                    <div>
+                        <label class="form-label small mb-1">Hasta</label>
+                        <input type="date" class="form-control form-control-sm" name="end_date">
+                    </div>
+                    <button type="submit" class="btn btn-gold btn-sm text-nowrap">
+                        <i class="bi bi-download me-1"></i> Ventas PDF
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <a href="{% url 'report_inventory_pdf' %}" class="btn btn-sm w-100" style="background:#2d7d2d;color:#fff">
+                    <i class="bi bi-download me-1"></i> Inventario PDF
+                </a>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <a href="{% url 'report_users_pdf' %}" class="btn btn-sm w-100" style="background:#3a5bd9;color:#fff">
+                    <i class="bi bi-download me-1"></i> Clientes PDF
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const GOLD   = '#c9a84c';
+const PALETTE = ['#c9a84c','#3a5bd9','#2d7d2d','#c0392b','#8e44ad','#e67e22','#16a085','#2c3e50'];
+
+// Ingresos por mes
+new Chart(document.getElementById('chartMonthly'), {
+    type: 'bar',
+    data: {
+        labels: {{ monthly_labels|safe }},
+        datasets: [{
+            label: 'Ingresos ($)',
+            data: {{ monthly_data|safe }},
+            backgroundColor: GOLD + 'cc',
+            borderColor: GOLD,
+            borderWidth: 2,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } }
+        }
+    }
+});
+
+// Pedidos por estado
+new Chart(document.getElementById('chartOrders'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ orders_status_labels|safe }},
+        datasets: [{
+            data: {{ orders_status_data|safe }},
+            backgroundColor: PALETTE,
+            borderWidth: 2,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+    }
+});
+
+// Stock por categoría
+new Chart(document.getElementById('chartInventory'), {
+    type: 'bar',
+    data: {
+        labels: {{ cat_labels|safe }},
+        datasets: [{
+            label: 'Unidades en stock',
+            data: {{ cat_stock|safe }},
+            backgroundColor: '#3a5bd9cc',
+            borderColor: '#3a5bd9',
+            borderWidth: 2,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true } }
+    }
+});
+
+// Reparaciones por estado
+new Chart(document.getElementById('chartRepairs'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ repair_labels|safe }},
+        datasets: [{
+            data: {{ repair_data|safe }},
+            backgroundColor: ['#e67e22','#3a5bd9','#c9a84c','#2d7d2d','#c0392b','#8e44ad'],
+            borderWidth: 2,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+    }
+});
+</script>
+{% endblock %}

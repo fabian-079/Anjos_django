@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load anjos_filters %}
+{% block title %}Diseños a medida - ANJOS{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="section-title mb-0">Diseños a medida</h2>
+    {% if not user.is_admin %}
+    <a href="{% url 'customization_create_form' %}" class="btn btn-gold">
+        <i class="bi bi-plus me-1"></i> Nuevo diseño
+    </a>
+    {% endif %}
+</div>
+
+<div class="card border-0 shadow-sm">
+    <table class="table mb-0">
+        <thead>
+            <tr><th>Pieza</th><th>Descripción</th><th>Estado</th><th>Precio estimado</th><th>Fecha</th><th></th></tr>
+        </thead>
+        <tbody>
+            {% for c in customizations %}
+            <tr>
+                <td class="fw-bold">
+                    <i class="bi bi-palette me-2" style="color:var(--gold)"></i>{{ c.jewelry_type }}
+                </td>
+                <td class="text-muted small">{{ c.design|truncatewords:8 }}</td>
+                <td>
+                    {% if c.status == 'completed' or c.status == 'approved' %}
+                    <span class="badge rounded-pill px-3" style="background:#d4edda;color:#155724">{{ c.status|status_es }}</span>
+                    {% elif c.status == 'cancelled' %}
+                    <span class="badge rounded-pill px-3" style="background:#f8d7da;color:#721c24">{{ c.status|status_es }}</span>
+                    {% elif c.status == 'in_progress' %}
+                    <span class="badge rounded-pill px-3" style="background:#cce5ff;color:#004085">{{ c.status|status_es }}</span>
+                    {% else %}
+                    <span class="badge rounded-pill px-3" style="background:#f5f5f5;color:#555">{{ c.status|status_es }}</span>
+                    {% endif %}
+                </td>
+                <td>{% if c.estimated_price %}<strong>${{ c.estimated_price|floatformat:0 }}</strong>{% else %}<span class="text-muted">Por confirmar</span>{% endif %}</td>
+                <td class="text-muted small">{{ c.created_at|date:"d M Y" }}</td>
+                <td class="text-end">
+                    <a href="{% url 'customization_show' pk=c.id %}" class="btn btn-sm btn-outline-dark me-1">Ver</a>
+                    <a href="{% url 'customization_edit_form' pk=c.id %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center py-5 text-muted">
+                <i class="bi bi-palette fs-2 d-block mb-2" style="color:#ddd"></i>
+                No hay diseños a medida registrados
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

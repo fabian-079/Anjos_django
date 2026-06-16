@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Nueva categoría - ANJOS{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <a href="{% url 'category_index' %}" class="text-decoration-none small d-block mb-3" style="color:var(--gold)">
+            <i class="bi bi-arrow-left me-1"></i> Categorías
+        </a>
+        <h2 class="section-title">Nueva categoría</h2>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" action="{% url 'category_create' %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Nombre *</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Descripción</label>
+                            <textarea name="description" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Enlace de imagen</label>
+                            <input type="text" name="image" class="form-control" placeholder="https://...">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input type="checkbox" name="is_active" value="true" class="form-check-input" id="is_active" checked>
+                                <label class="form-check-label" for="is_active">Categoría activa</label>
+                            </div>
+                        </div>
+                        <div class="col-12 d-flex gap-2 mt-2">
+                            <button type="submit" class="btn btn-gold flex-grow-1">Guardar categoría</button>
+                            <a href="{% url 'category_index' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

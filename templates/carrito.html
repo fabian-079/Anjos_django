@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Mi carrito - ANJOS{% endblock %}
+{% block content %}
+
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+        <li class="breadcrumb-item active">Mi carrito</li>
+    </ol>
+</nav>
+
+<h2 class="section-title">Mi carrito</h2>
+
+{% if cart_items %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        {% for item in cart_items %}
+        <div class="d-flex gap-3 py-3" style="border-bottom:1px solid #f0f0f0">
+            {% if item.product_image %}
+            <img src="{{ item.product_image }}" style="width:80px;height:80px;object-fit:cover;border-radius:4px" alt="{{ item.product_name }}">
+            {% else %}
+            <div style="width:80px;height:80px;background:var(--soft);border-radius:4px;display:flex;align-items:center;justify-content:center">
+                <i class="bi bi-gem" style="color:var(--gold);font-size:1.5rem"></i>
+            </div>
+            {% endif %}
+            <div class="flex-grow-1">
+                <h6 class="mb-1">{{ item.product_name }}</h6>
+                <p class="text-muted small mb-2">${{ item.product_price|floatformat:0 }} c/u</p>
+                <form method="post" action="{% url 'cart_update' pk=item.id %}" class="d-flex gap-2 align-items-center">
+                    {% csrf_token %}
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control form-control-sm text-center" style="width:65px">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Actualizar</button>
+                </form>
+            </div>
+            <div class="text-end">
+                <p class="fw-bold mb-2">${{ item.subtotal|floatformat:0 }}</p>
+                <form method="post" action="{% url 'cart_remove' pk=item.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm" style="color:#999" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="mt-3">
+            <a href="{% url 'catalogo' %}" class="text-decoration-none small" style="color:var(--gold)">
+                <i class="bi bi-arrow-left me-1"></i> Seguir comprando
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0" style="background:var(--soft)">
+            <div class="card-body p-4">
+                <h5 class="mb-4" style="font-family:'Playfair Display',serif">Resumen del pedido</h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">Subtotal</span>
+                    <span class="fw-bold">${{ cart_total|floatformat:0 }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted small">Envío</span>
+                    <span class="small" style="color:var(--gold)">A calcular</span>
+                </div>
+                <div class="d-flex justify-content-between py-3" style="border-top:2px solid #ddd;border-bottom:2px solid #ddd">
+                    <span class="fw-bold">Total</span>
+                    <span class="fw-bold fs-5">${{ cart_total|floatformat:0 }}</span>
+                </div>
+                {% if is_guest %}
+                <a href="{% url 'login' %}?next={% url 'checkout' %}" class="btn btn-gold w-100 py-2 mt-3">
+                    <i class="bi bi-person me-1"></i> Inicia sesión para pagar
+                </a>
+                <p class="text-muted small text-center mt-2 mb-0">Tu carrito se guardará al iniciar sesión</p>
+                {% else %}
+                <a href="{% url 'checkout' %}" class="btn btn-gold w-100 py-2 mt-3">
+                    Confirmar pedido <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-bag fs-1" style="color:#ddd"></i>
+    <h5 class="mt-3 text-muted">Tu carrito está vacío</h5>
+    <p class="text-muted small">Explora nuestra colección y encuentra algo que te encante</p>
+    <a href="{% url 'catalogo' %}" class="btn btn-gold mt-2">Ver colección</a>
+</div>
+{% endif %}
+{% endblock %}
