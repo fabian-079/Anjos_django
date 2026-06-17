@@ -2,6 +2,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
+# Importamos 'serve' para poder servir archivos en producción
+from django.views.static import serve
 
 from adapters.api.views import (
     login_view, register_view, logout_view,
@@ -178,6 +180,9 @@ urlpatterns = [
     path('api/location/', api_location_info, name='api_location_info'),
     path('api/shipping/', api_calculate_shipping, name='api_calculate_shipping'),
     path('api/weather/', api_weather_info, name='api_weather_info'),
+    
+    # Manejo de archivos locales en producción (Ruta /uploads/)
+    path('uploads/<path:path>', serve, {'document_root': '/app/uploads'}),
 ]
 
 if settings.DEBUG:
