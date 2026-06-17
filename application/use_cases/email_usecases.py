@@ -1,8 +1,27 @@
-from typing import List, Optional
+from typing import List
 from django.core.mail import send_mail, send_mass_mail
 from django.conf import settings
 from background_task import background
 from domain.repositories.user_repository import UserRepository
+
+# Función externa para el envío masivo (evita error de serialización de 'self')
+@background(schedule=0)
+def _send_mass_email_task(subject: str, message: str, user_role: str = None):
+    from infrastructure.container import get_user_repo
+    user_repo = get_user_repo()
+    users = user_repo.find_all()
+    
+    if user_role:
+        users = [u for u in users if user_role.lower() in [r.lower() for r in u.roles]]
+    
+    messages = []
+    for user in users:
+        if user.email and user.is_active:
+            personalized_message = message.replace('{name}', user.name)
+            messages.append((subject, personalized_message, settings.DEFAULT_FROM_EMAIL, [user.email]))
+    
+    if messages:
+        send_mass_mail(messages, fail_silently=False)
 
 class EmailUseCases:
     def __init__(self, user_repo: UserRepository):
@@ -52,27 +71,10 @@ class EmailUseCases:
         except Exception:
             return False
 
-    @background(schedule=0)
     def send_mass_promotional_email(self, subject: str, message: str, user_role: str = None) -> int:
-        users = self._user_repo.find_all()
-        if user_role:
-            users = [u for u in users if user_role.lower() in [r.lower() for r in u.roles]]
-        
-        if not users:
-            return 0
-        
-        messages = []
-        for user in users:
-            if user.email and user.is_active:
-                personalized_message = message.replace('{name}', user.name)
-                messages.append((subject, personalized_message, settings.DEFAULT_FROM_EMAIL, [user.email]))
-        
-        try:
-            send_mass_mail(messages, fail_silently=False)
-            return len(messages)
-        except Exception as e:
-            print(f"Error enviando correos masivos: {e}")
-            return 0
+        """Dispara la tarea asíncrona"""
+        _send_mass_email_task(subject, message, user_role)
+        return 0 
 
     def send_new_products_notification(self, product_names: List[str]) -> int:
         users = [u for u in self._user_repo.find_all() if 'cliente' in [r.lower() for r in u.roles] and u.is_active]
