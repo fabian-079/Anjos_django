@@ -1,3 +1,4 @@
+import threading
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -11,6 +12,13 @@ from infrastructure.container import (
 )
 from adapters.api.decorators import admin_required
 
+# --- Funciones auxiliares para hilos ---
+def _send_welcome_email_async(user_id):
+    """Tarea para enviar el email en segundo plano"""
+    try:
+        get_email_usecases().send_welcome_email(user_id)
+    except Exception as e:
+        print(f"Error enviando email de bienvenida: {e}")
 
 # ─── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -60,7 +68,10 @@ def register_view(request):
                     name=name, email=email, password=password,
                     phone=phone or None, address=address or None, role='cliente',
                 )
-                get_email_usecases().send_welcome_email(new_user.id)
+                
+                # --- ENVÍO ASÍNCRONO ---
+                threading.Thread(target=_send_welcome_email_async, args=(new_user.id,)).start()
+                
                 user = authenticate(request, username=email, password=password)
                 if user:
                     login(request, user)
