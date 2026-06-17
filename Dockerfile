@@ -8,23 +8,26 @@ ENV PYTHONUNBUFFERED=1
 # 3. Establece el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# 4. Instala las dependencias del sistema necesarias para compilar herramientas de Postgres
+# 4. Instala las dependencias del sistema necesarias
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # 5. Copia los archivos de dependencias e instálalos
-# (Asumimos que usaremos requirements.txt, el cual crearemos en el siguiente paso)
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install gunicorn
 
-# 6. Copia el resto del código del proyecto Anjos
+# 6. Copia el resto del código del proyecto
 COPY . /app/
 
-# 7. Expone el puerto por el que escuchará la app (Railway maneja el puerto dinámicamente mediante variables de entorno)
+# 7. Ejecuta collectstatic para preparar los archivos CSS/JS/Logo en /app/staticfiles/
+RUN python manage.py collectstatic --noinput
+
+# 8. Expone el puerto 8000
 EXPOSE 8000
 
-# 8. Comando para arrancar el servidor en producción usando el archivo manage.py
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# 9. Comando para arrancar en producción usando Gunicorn (más rápido y seguro)
+CMD ["gunicorn", "wsgi:application", "--bind", "0.0.0.0:8000"]
