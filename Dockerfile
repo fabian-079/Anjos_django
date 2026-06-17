@@ -24,7 +24,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 COPY . /app/
 
 # 7. Ejecuta collectstatic para preparar los archivos CSS/JS/Logo
-RUN python manage.py collectstatic --noinput
+# RUN python manage.py collectstatic --noinput
 
 # 8. Copia el script de entrada y dale permisos de ejecución
 COPY entrypoint.sh /app/entrypoint.sh

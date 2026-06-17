@@ -1,9 +1,12 @@
 #!/bin/bash
-# 1. Aplicar migraciones automáticamente al arrancar
+# 1. Recolectar estáticos (aquí sí tenemos acceso a las variables de entorno)
+python manage.py collectstatic --noinput
+
+# 2. Aplicar migraciones
 python manage.py migrate --noinput
 
-# 2. Iniciar el procesador de tareas en segundo plano
+# 3. Iniciar el procesador de tareas
 python manage.py process_tasks &
 
-# 3. Iniciar Gunicorn
+# 4. Iniciar Gunicorn
 exec gunicorn wsgi:application --bind 0.0.0.0:8000
