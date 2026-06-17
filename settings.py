@@ -116,13 +116,13 @@ CSRF_TRUSTED_ORIGINS = ['https://anjosdjango-production.up.railway.app']
 
 # Email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_HOST = os.environ.get('EMAIL_HOST') # Sin 'smtp.gmail.com'
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_TIMEOUT = 10
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'anjoscorreos@gmail.com')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'nicxihxjjzwjhnqb')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'ANJOS <anjoscorreos@gmail.com>')
+EMAIL_USE_TLS = True 
+EMAIL_TIMEOUT = 40
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER') # Sin email de gmail
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD') # Sin la clave vieja
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL') # Sin email de gmail
 
 # API Keys
 EXCHANGE_RATE_API_KEY = os.environ.get('EXCHANGE_RATE_API_KEY', '')
