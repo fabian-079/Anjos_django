@@ -1,3 +1,4 @@
+import threading
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -15,11 +16,13 @@ from adapters.api.decorators import admin_required
 # --- Tarea asíncrona segura ---
 @background(schedule=1)
 def _send_welcome_email_async(user_id):
-    """Tarea para enviar el email de forma asíncrona y persistente"""
+    """Tarea para enviar el email en segundo plano de forma persistente"""
     try:
-        get_email_usecases().send_welcome_email(user_id)
+        from infrastructure.models.user_model import User
+        user = User.objects.get(id=user_id)
+        get_email_usecases().send_welcome_email(user)
+        print(f"Correo de bienvenida enviado a: {user.email}")
     except Exception as e:
-        # Esto no detendrá el servidor, solo quedará registrado en el log
         print(f"Error enviando email de bienvenida: {e}")
 
 # ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -71,7 +74,7 @@ def register_view(request):
                     phone=phone or None, address=address or None, role='cliente',
                 )
                 
-                # --- ENVÍO ASÍNCRONO CORREGIDO ---
+                # --- ENVÍO ASÍNCRONO ---
                 _send_welcome_email_async(new_user.id)
                 
                 user = authenticate(request, username=email, password=password)
@@ -123,7 +126,7 @@ def _redirect_by_role(user):
     return redirect('dashboard_cliente')
 
 
-# ─── Home y otras vistas ──────────────────────────────────────────────────────
+# ─── Home ─────────────────────────────────────────────────────────────────────
 
 def home_view(request):
     products_uc = get_product_usecases()
@@ -135,9 +138,11 @@ def home_view(request):
         'categories': categories,
     })
 
+
 def catalogo_view(request):
     products_uc = get_product_usecases()
     categories_uc = get_category_usecases()
+
     category_id = request.GET.get('category')
     material = request.GET.get('material')
     color = request.GET.get('color')
@@ -174,6 +179,7 @@ def catalogo_view(request):
         },
     })
 
+
 def producto_detalle_view(request, pk):
     products_uc = get_product_usecases()
     product = products_uc.get_product_by_id(pk)
@@ -193,13 +199,16 @@ def producto_detalle_view(request, pk):
         'is_favorite': is_favorite,
     })
 
+
 def get_favorite_usecases_lazy():
     from infrastructure.container import get_favorite_usecases
     return get_favorite_usecases()
 
+
 def buscar_view(request):
     products_uc = get_product_usecases()
     categories_uc = get_category_usecases()
+
     search = request.GET.get('q', '').strip()
     category_id = request.GET.get('category', '').strip()
     material = request.GET.get('material', '').strip()
@@ -211,7 +220,10 @@ def buscar_view(request):
     page = int(request.GET.get('page', 0))
 
     has_filters = any([search, category_id, material, color, finish, stones_filter, min_price, max_price])
-    products, total_items, total_pages, current_page = [], None, 1, 0
+    total_items = None
+    total_pages = 1
+    current_page = 0
+    products = []
 
     if has_filters:
         result = products_uc.search_products(
@@ -243,6 +255,9 @@ def buscar_view(request):
         'stones': products_uc.get_distinct_stones(),
     })
 
+
+# ─── Dashboard ────────────────────────────────────────────────────────────────
+
 @login_required
 def dashboard_admin_view(request):
     from infrastructure.models.user_model import User as UserModel
@@ -257,7 +272,10 @@ def dashboard_admin_view(request):
 
     recent_orders = get_order_usecases().get_all_orders()[:5]
     recent_repairs = get_repair_usecases().get_all()[:5]
-    notif_count = get_notification_usecases().count_unread(request.user.id)
+
+    notif_count = 0
+    if request.user.is_authenticated:
+        notif_count = get_notification_usecases().count_unread(request.user.id)
 
     return render(request, 'dashboard/admin.html', {
         'total_users': total_users,
@@ -268,6 +286,7 @@ def dashboard_admin_view(request):
         'recent_repairs': recent_repairs,
         'unread_notifications': notif_count,
     })
+
 
 @login_required
 def dashboard_cliente_view(request):

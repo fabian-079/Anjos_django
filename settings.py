@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 # --- SEGURIDAD ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-anjos-jewelry-store-secret-key-change-in-production')
-DEBUG = False
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
     'anjosdjango-production.up.railway.app',
@@ -63,10 +63,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wsgi.application'
 
-# --- BASE DE DATOS ---
-DATABASES = {
-    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'), conn_max_age=600, ssl_require=True)
-}
+# --- BASE DE DATOS (CORREGIDO PARA LOCAL Y PROD) ---
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=True)
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # --- AUTENTICACIÓN ---
 AUTH_USER_MODEL = 'infrastructure.User'
@@ -109,7 +119,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_TIMEOUT = 10  # Mantener esto para cortar conexiones lentas
+EMAIL_TIMEOUT = 10
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'anjoscorreos@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'nicxihxjjzwjhnqb')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'ANJOS <anjoscorreos@gmail.com>')
