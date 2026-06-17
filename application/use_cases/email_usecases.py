@@ -4,14 +4,15 @@ from django.conf import settings
 from background_task import background
 from domain.repositories.user_repository import UserRepository
 
-# Función externa para el envío masivo
+# Función externa decorada para procesamiento en segundo plano
 @background(schedule=0)
 def _send_mass_email_task(subject: str, message: str, user_role: str = None):
-    from infrastructure.container import get_user_usecases
+    # Importación perezosa (dentro de la función) para evitar recursión/ciclos
+    import infrastructure.container as container
     
-    # Obtenemos los casos de uso de usuario y buscamos a todos
-    user_uc = get_user_usecases()
-    users = user_uc.get_all_users() # <-- Usamos el método correcto
+    # Obtenemos los usuarios a través del contenedor
+    user_uc = container.get_user_usecases()
+    users = user_uc.get_all_users()
     
     if user_role:
         users = [u for u in users if user_role.lower() in [r.lower() for r in u.roles]]
@@ -74,6 +75,7 @@ class EmailUseCases:
             return False
 
     def send_mass_promotional_email(self, subject: str, message: str, user_role: str = None) -> int:
+        # Dispara la tarea asíncrona sin pasar el objeto 'self' de la clase
         _send_mass_email_task(subject, message, user_role)
         return 0
 
