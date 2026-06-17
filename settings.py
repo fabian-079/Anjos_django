@@ -108,7 +108,7 @@ CSRF_TRUSTED_ORIGINS = ['https://anjosdjango-production.up.railway.app']
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = True
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_TIMEOUT = 10  # Mantener esto para cortar conexiones lentas
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'anjoscorreos@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'nicxihxjjzwjhnqb')
