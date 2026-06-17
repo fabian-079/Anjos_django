@@ -23,11 +23,15 @@ RUN pip install --no-cache-dir --upgrade pip \
 # 6. Copia el resto del código del proyecto
 COPY . /app/
 
-# 7. Ejecuta collectstatic para preparar los archivos CSS/JS/Logo en /app/staticfiles/
+# 7. Ejecuta collectstatic para preparar los archivos CSS/JS/Logo
 RUN python manage.py collectstatic --noinput
 
-# 8. Expone el puerto 8000
+# 8. Copia el script de entrada y dale permisos de ejecución
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# 9. Expone el puerto 8000
 EXPOSE 8000
 
-# 9. Comando para arrancar en producción usando Gunicorn (más rápido y seguro)
-CMD ["gunicorn", "wsgi:application", "--bind", "0.0.0.0:8000"]
+# 10. Comando para arrancar usando el script de entrada
+CMD ["/app/entrypoint.sh"]
