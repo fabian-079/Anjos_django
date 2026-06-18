@@ -14,3 +14,5 @@ charset-normalizer==3.3.0
 # Pasarelas de pago
 stripe==7.12.0
 paypal-checkout-serversdk==1.0.1
+# Forzar actualización Railway
+requests==2.34.2
