@@ -88,12 +88,21 @@ class EmailUseCases:
             return False
 
     def send_mass_promotional_email(self, subject: str, message: str, user_role: str = None) -> int:
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Logging inmediato para detectar si se llama la función
+        logger.info("🚀 FUNCIÓN send_mass_promotional_email LLAMADA")
+        logger.info(f"   Parámetros: subject='{subject}', message_length={len(message)}, user_role='{user_role}'")
+        
         # Forzar ejecución síncrona en Railway - el worker de background tasks no está procesando
         import os
         if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_SERVICE_NAME'):
+            logger.info("📍 DETECTADO ENTORNO RAILWAY - Ejecutando síncrono directo")
             # Ejecución síncrona directa en Railway para asegurar que se procese
             return self._send_mass_email_sync_direct(subject, message, user_role)
         else:
+            logger.info("📍 ENTORNO LOCAL - Ejecutando background task")
             # Ejecución asíncrona en desarrollo local
             _send_mass_email_task(subject, message, user_role)
             return 0
