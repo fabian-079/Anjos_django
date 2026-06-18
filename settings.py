@@ -135,6 +135,20 @@ SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
 SENDGRID_FROM_EMAIL = os.environ.get('SENDGRID_FROM_EMAIL', 'anjoscorreos7@gmail.com')
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 
+# Pasarelas de Pago
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+
+PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', '')
+PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET', '')
+PAYPAL_MODE = os.environ.get('PAYPAL_MODE', 'sandbox')  # sandbox o live
+
+WOMPI_PUBLIC_KEY = os.environ.get('WOMPI_PUBLIC_KEY', '')
+WOMPI_PRIVATE_KEY = os.environ.get('WOMPI_PRIVATE_KEY', '')
+WOMPI_INTEGRITY_KEY = os.environ.get('WOMPI_INTEGRITY_KEY', '')
+WOMPI_EVENT_URL = os.environ.get('WOMPI_EVENT_URL', '')
+
 # Configuración para Background Tasks en Railway
 MAX_ATTEMPTS = 3
 BACKGROUND_TASK_RUN_ASYNC = True

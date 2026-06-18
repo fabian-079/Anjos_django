@@ -48,6 +48,13 @@ from adapters.api.favorite_views import favoritos_view, favorite_remove
 from adapters.api.email_views import (
     email_mass_send_form, email_mass_send, email_mass_send_debug, email_new_products_notification, email_test_send
 )
+from adapters.api.payment_views import (
+    payment_methods_view, payment_checkout_view, create_payment,
+    payment_success_view, payment_cancel_view, payment_pending_view,
+    payment_webhook_stripe, payment_webhook_paypal, payment_webhook_wompi,
+    payment_history_view, payment_admin_view, add_to_cart_view,
+    get_cart_view, clear_cart_view
+)
 from adapters.api.report_views import (
     reports_index, report_sales_pdf, report_inventory_pdf, report_users_pdf, report_preview
 )
@@ -181,6 +188,26 @@ urlpatterns = [
     path('api/location/', api_location_info, name='api_location_info'),
     path('api/shipping/', api_calculate_shipping, name='api_calculate_shipping'),
     path('api/weather/', api_weather_info, name='api_weather_info'),
+
+    # Pasarela de Pagos
+    path('payment/methods/', payment_methods_view, name='payment_methods'),
+    path('payment/checkout/', payment_checkout_view, name='payment_checkout'),
+    path('payment/create/', create_payment, name='payment_create'),
+    path('payment/success/', payment_success_view, name='payment_success'),
+    path('payment/cancel/', payment_cancel_view, name='payment_cancel'),
+    path('payment/pending/', payment_pending_view, name='payment_pending'),
+    path('payment/history/', payment_history_view, name='payment_history'),
+    path('payment/admin/', payment_admin_view, name='payment_admin'),
+    
+    # Carrito API
+    path('api/cart/add/', add_to_cart_view, name='add_to_cart_api'),
+    path('api/cart/', get_cart_view, name='get_cart'),
+    path('api/cart/clear/', clear_cart_view, name='clear_cart'),
+    
+    # Webhooks de pagos
+    path('webhook/stripe/', payment_webhook_stripe, name='payment_webhook_stripe'),
+    path('webhook/paypal/', payment_webhook_paypal, name='payment_webhook_paypal'),
+    path('webhook/wompi/', payment_webhook_wompi, name='payment_webhook_wompi'),
     
     # Manejo de archivos locales en producción (Ruta /uploads/)
     path('uploads/<path:path>', serve, {'document_root': '/app/uploads'}),

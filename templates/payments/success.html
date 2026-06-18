@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pago Exitoso - ANJOS Jewelry{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+.success-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.success-icon {
+    font-size: 80px;
+    color: #28a745;
+    margin-bottom: 30px;
+    animation: success-pulse 1s ease-in-out;
+}
+
+@keyframes success-pulse {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.success-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    padding: 40px;
+    margin-bottom: 30px;
+}
+
+.success-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.success-subtitle {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.order-details {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 25px;
+    margin: 30px 0;
+    text-align: left;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+    font-weight: 600;
+    font-size: 18px;
+    color: #007bff;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-action {
+    padding: 12px 30px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+    transform: translateY(-2px);
+    color: white;
+}
+
+.btn-outline {
+    border: 2px solid #007bff;
+    color: #007bff;
+}
+
+.btn-outline:hover {
+    background: #007bff;
+    color: white;
+}
+
+.timeline {
+    position: relative;
+    margin: 40px 0;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.timeline-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #28a745;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.timeline-content {
+    flex: 1;
+    text-align: left;
+}
+
+.timeline-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.timeline-time {
+    color: #666;
+    font-size: 14px;
+}
+
+.receipt-info {
+    background: #e7f3ff;
+    border-left: 4px solid #007bff;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 0 8px 8px 0;
+}
+
+@media (max-width: 768px) {
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-action {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+    </div>
+
+    <div class="success-card">
+        <h1 class="success-title">¡Pago Exitoso!</h1>
+        <p class="success-subtitle">Tu compra ha sido procesada exitosamente</p>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-title">Pedido creado</div>
+                    <div class="timeline-time">{{ payment.created_at|date:"d M Y, H:i" }}</div>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-icon">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-title">Pago aprobado</div>
+                    <div class="timeline-time">{{ payment.response.status|title }}</div>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-title">Confirmación enviada</div>
+                    <div class="timeline-time">{{ payment.request.customer_email }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="order-details">
+            <h4 class="mb-3">
+                <i class="fas fa-receipt"></i>
+                Detalles del Pedido
+            </h4>
+            
+            <div class="detail-row">
+                <span>Número de Pedido:</span>
+                <span>#{{ payment.id[:8].upper() }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span>Descripción:</span>
+                <span>{{ payment.request.description }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span>Método de Pago:</span>
+                <span>{{ payment.request.payment_method.value|title }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span>Total Pagado:</span>
+                <span>${{ payment.request.amount|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        <div class="receipt-info">
+            <i class="fas fa-info-circle"></i>
+            <strong>Importante:</strong> Hemos enviado una confirmación de compra a tu correo electrónico. 
+            Guarda este comprobante para futuras referencias.
+        </div>
+
+        <div class="action-buttons">
+            <a href="{% url 'product_index' %}" class="btn-action btn-primary">
+                <i class="fas fa-shopping-bag"></i>
+                Seguir Comprando
+            </a>
+            
+            <a href="{% url 'payment_history' %}" class="btn-action btn-outline">
+                <i class="fas fa-history"></i>
+                Mis Compras
+            </a>
+            
+            <a href="javascript:window.print()" class="btn-action btn-outline">
+                <i class="fas fa-print"></i>
+                Imprimir Comprobante
+            </a>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <p class="text-muted">
+            <i class="fas fa-headset"></i>
+            ¿Necesitas ayuda? 
+            <a href="/contacto">Contacta a soporte</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Opcional: Animación de confeti
+function createConfetti() {
+    const colors = ['#28a745', '#007bff', '#ffc107', '#dc3545'];
+    const confettiCount = 50;
+    
+    for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.position = 'fixed';
+        confetti.style.width = '10px';
+        confetti.style.height = '10px';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.top = '-10px';
+        confetti.style.borderRadius = '50%';
+        confetti.style.pointerEvents = 'none';
+        confetti.style.zIndex = '9999';
+        
+        document.body.appendChild(confetti);
+        
+        const animation = confetti.animate([
+            { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+            { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+        ], {
+            duration: Math.random() * 2000 + 1000,
+            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+        });
+        
+        animation.onfinish = () => confetti.remove();
+    }
+}
+
+// Ejecutar confeti cuando la página cargue
+window.addEventListener('load', createConfetti);
+</script>
+{% endblock %}

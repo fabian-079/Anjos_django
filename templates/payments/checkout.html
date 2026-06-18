@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - ANJOS Jewelry{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+.payment-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.checkout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 30px;
+}
+
+.order-summary {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 25px;
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+}
+
+.payment-methods {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.payment-method-card {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.payment-method-card:hover {
+    border-color: #007bff;
+    background: #f8f9ff;
+}
+
+.payment-method-card.selected {
+    border-color: #007bff;
+    background: #e7f3ff;
+}
+
+.payment-method-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.payment-icon {
+    font-size: 24px;
+    width: 40px;
+    text-align: center;
+}
+
+.payment-info h4 {
+    margin: 0 0 5px 0;
+    color: #333;
+}
+
+.payment-info p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-name {
+    font-weight: 600;
+    color: #333;
+}
+
+.item-details {
+    color: #666;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.item-price {
+    font-weight: 600;
+    color: #333;
+}
+
+.order-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-top: 2px solid #dee2e6;
+    margin-top: 20px;
+}
+
+.total-amount {
+    font-size: 24px;
+    font-weight: 700;
+    color: #007bff;
+}
+
+.checkout-button {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.checkout-button:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+    transform: translateY(-2px);
+}
+
+.checkout-button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.security-badges {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.security-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    font-size: 12px;
+}
+
+.loading-spinner {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .checkout-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .order-summary {
+        position: static;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="payment-container">
+    <div class="text-center mb-4">
+        <h1 class="h2 mb-3">
+            <i class="fas fa-lock text-primary"></i>
+            Checkout Seguro
+        </h1>
+        <p class="text-muted">Completa tu compra de forma segura y rápida</p>
+    </div>
+
+    <div class="checkout-grid">
+        <!-- Métodos de Pago -->
+        <div class="payment-methods">
+            <h3 class="mb-4">
+                <i class="fas fa-credit-card"></i>
+                Método de Pago
+            </h3>
+
+            <form id="payment-form">
+                {% for method in payment_methods %}
+                <div class="payment-method-card {% if not method.enabled %}disabled{% endif %}" 
+                     data-method="{{ method.id }}" 
+                     {% if not method.enabled %}title="Próximamente disponible"{% endif %}>
+                    <div class="payment-icon">
+                        <i class="fas fa-{{ method.icon }}"></i>
+                    </div>
+                    <div class="payment-info">
+                        <h4>{{ method.name }}</h4>
+                        <p>{{ method.description }}</p>
+                    </div>
+                    {% if method.enabled %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_method" 
+                               value="{{ method.id }}" id="method_{{ method.id }}">
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="checkout-button" id="checkout-btn" disabled>
+                    <span id="btn-text">Selecciona un método de pago</span>
+                    <div class="loading-spinner" id="loading-spinner"></div>
+                </button>
+            </form>
+
+            <div class="security-badges">
+                <div class="security-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>SSL Seguro</span>
+                </div>
+                <div class="security-badge">
+                    <i class="fas fa-lock"></i>
+                    <span>Encriptado</span>
+                </div>
+                <div class="security-badge">
+                    <i class="fas fa-credit-card"></i>
+                    <span>PCI DSS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen del Pedido -->
+        <div class="order-summary">
+            <h3 class="mb-4">
+                <i class="fas fa-shopping-cart"></i>
+                Resumen del Pedido
+            </h3>
+
+            {% if cart_items %}
+                {% for item in cart_items %}
+                <div class="order-item">
+                    <div class="item-info">
+                        <div class="item-name">{{ item.name }}</div>
+                        <div class="item-details">
+                            Cantidad: {{ item.quantity }} | 
+                            Precio unitario: ${{ item.price|floatformat:2 }}
+                        </div>
+                    </div>
+                    <div class="item-price">
+                        ${{ item.price|mul:item.quantity|floatformat:2 }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Tu carrito está vacío</p>
+                </div>
+            {% endif %}
+
+            <div class="order-total">
+                <span class="h5">Total:</span>
+                <span class="total-amount">${{ total_amount|floatformat:2 }}</span>
+            </div>
+
+            <div class="mt-3">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i>
+                    Los precios están en pesos colombianos (COP)
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentCards = document.querySelectorAll('.payment-method-card:not(.disabled)');
+    const checkoutBtn = document.getElementById('checkout-btn');
+    const btnText = document.getElementById('btn-text');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const paymentForm = document.getElementById('payment-form');
+
+    paymentCards.forEach(card => {
+        card.addEventListener('click', function() {
+            // Remover selección anterior
+            paymentCards.forEach(c => c.classList.remove('selected'));
+            
+            // Seleccionar actual
+            this.classList.add('selected');
+            
+            // Marcar radio button
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+            }
+            
+            // Habilitar botón
+            checkoutBtn.disabled = false;
+            btnText.textContent = 'Proceder al Pago';
+        });
+    });
+
+    paymentForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const selectedMethod = document.querySelector('input[name="payment_method"]:checked');
+        if (!selectedMethod) {
+            alert('Por favor selecciona un método de pago');
+            return;
+        }
+
+        // Mostrar loading
+        checkoutBtn.disabled = true;
+        btnText.textContent = 'Procesando...';
+        loadingSpinner.style.display = 'inline-block';
+
+        try {
+            const response = await fetch('/payment/create/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    amount: {{ total_amount }},
+                    description: 'Compra ANJOS Jewelry',
+                    payment_method: selectedMethod.value
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.payment_url) {
+                // Redirigir a la pasarela de pago
+                window.location.href = data.payment_url;
+            } else {
+                throw new Error(data.error || 'Error al procesar el pago');
+            }
+
+        } catch (error) {
+            alert('Error: ' + error.message);
+            
+            // Restaurar botón
+            checkoutBtn.disabled = false;
+            btnText.textContent = 'Proceder al Pago';
+            loadingSpinner.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

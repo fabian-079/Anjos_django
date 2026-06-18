@@ -10,3 +10,7 @@ cloudinary==1.41.0
 django-background-tasks
 urllib3==1.26.18
 charset-normalizer==3.3.0
+
+# Pasarelas de pago
+stripe==7.12.0
+paypal-checkout-serversdk==1.0.1

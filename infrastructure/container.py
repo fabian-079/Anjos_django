@@ -11,6 +11,7 @@ from infrastructure.repositories.favorite_repository_impl import FavoriteReposit
 from infrastructure.repositories.repair_repository_impl import RepairRepositoryImpl
 from infrastructure.repositories.customization_repository_impl import CustomizationRepositoryImpl
 from infrastructure.repositories.notification_repository_impl import NotificationRepositoryImpl
+from infrastructure.repositories.payment_repository import PaymentRepository
 
 from application.use_cases.user_usecases import UserUseCases
 from application.use_cases.product_usecases import ProductUseCases
@@ -24,6 +25,7 @@ from application.use_cases.notification_usecases import NotificationUseCases
 from application.use_cases.email_usecases import EmailUseCases
 from application.use_cases.report_usecases import ReportUseCases
 from application.use_cases.webservice_usecases import WebServiceUseCases
+from application.use_cases.payment_usecases import PaymentUseCases
 
 
 def get_user_usecases() -> UserUseCases:
@@ -95,3 +97,7 @@ def get_report_usecases() -> ReportUseCases:
 
 def get_webservice_usecases() -> WebServiceUseCases:
     return WebServiceUseCases()
+
+
+def get_payment_usecases() -> PaymentUseCases:
+    return PaymentUseCases(PaymentRepository())
