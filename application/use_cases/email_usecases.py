@@ -118,15 +118,28 @@ class EmailUseCases:
                     messages.append((subject, personalized_message, settings.DEFAULT_FROM_EMAIL, [user.email]))
             
             if messages:
-                result = send_mass_mail(messages, fail_silently=False)
-                logger.info(f"Envío masivo síncrono completado: {result} correos enviados")
-                return result
+                try:
+                    result = send_mass_mail(messages, fail_silently=False)
+                    logger.info(f"Envío masivo síncrono completado: {result} correos enviados")
+                    return result
+                except Exception as email_error:
+                    logger.error(f"Error específico de SMTP: {str(email_error)}")
+                    # Intentar enviar uno por uno si falla el envío masivo
+                    sent_count = 0
+                    for subject, message, from_email, recipient_list in messages:
+                        try:
+                            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+                            sent_count += 1
+                        except Exception as individual_error:
+                            logger.error(f"Error enviando a {recipient_list[0]}: {str(individual_error)}")
+                    logger.info(f"Envío individual completado: {sent_count}/{len(messages)} correos enviados")
+                    return sent_count
             else:
                 logger.warning("No hay usuarios válidos para enviar correos")
                 return 0
                 
         except Exception as e:
-            logger.error(f"Error en envío masivo síncrono: {str(e)}")
+            logger.error(f"Error general en envío masivo síncrono: {str(e)}")
             return 0
 
     def send_new_products_notification(self, product_names: List[str]) -> int:
