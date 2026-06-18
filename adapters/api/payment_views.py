@@ -8,17 +8,41 @@ import json
 from decimal import Decimal
 
 from adapters.api.decorators import admin_required
-from infrastructure.container import get_payment_usecases
+from application.services.simple_payment_service import simple_payment_service
 from domain.payment import PaymentMethod, PaymentStatus, Currency
-
-def get_payment_usecases():
-    from infrastructure.container import get_payment_usecases
-    return get_payment_usecases()
 
 def payment_methods_view(request):
     """Vista para mostrar métodos de pago disponibles"""
-    payment_uc = get_payment_usecases()
-    methods = payment_uc.get_payment_methods_available()
+    methods = [
+        {
+            "id": PaymentMethod.STRIPE_CARD.value,
+            "name": "Tarjeta de Crédito/Débito",
+            "description": "Visa, Mastercard, American Express (Simulado)",
+            "icon": "credit-card",
+            "enabled": True
+        },
+        {
+            "id": PaymentMethod.PAYPAL.value,
+            "name": "PayPal",
+            "description": "Pago seguro con PayPal (Simulado)",
+            "icon": "paypal",
+            "enabled": True
+        },
+        {
+            "id": PaymentMethod.PSE.value,
+            "name": "PSE",
+            "description": "Pago electrónico desde tu cuenta bancaria (Simulado)",
+            "icon": "bank",
+            "enabled": True
+        },
+        {
+            "id": PaymentMethod.EFECTY.value,
+            "name": "Efecty",
+            "description": "Paga en efectivo en puntos autorizados (Simulado)",
+            "icon": "money-bill",
+            "enabled": True
+        }
+    ]
     
     return render(request, 'payments/methods.html', {
         'payment_methods': methods
@@ -33,8 +57,36 @@ def payment_checkout_view(request):
     cart_items = request.session.get('cart', [])
     total_amount = sum(item['price'] * item['quantity'] for item in cart_items)
     
-    payment_uc = get_payment_usecases()
-    methods = payment_uc.get_payment_methods_available()
+    methods = [
+        {
+            "id": PaymentMethod.STRIPE_CARD.value,
+            "name": "Tarjeta de Crédito/Débito",
+            "description": "Visa, Mastercard, American Express (Simulado)",
+            "icon": "credit-card",
+            "enabled": True
+        },
+        {
+            "id": PaymentMethod.PAYPAL.value,
+            "name": "PayPal",
+            "description": "Pago seguro con PayPal (Simulado)",
+            "icon": "paypal",
+            "enabled": True
+        },
+        {
+            "id": PaymentMethod.PSE.value,
+            "name": "PSE",
+            "description": "Pago electrónico desde tu cuenta bancaria (Simulado)",
+            "icon": "bank",
+            "enabled": True
+        },
+        {
+            "id": PaymentMethod.EFECTY.value,
+            "name": "Efecty",
+            "description": "Paga en efectivo en puntos autorizados (Simulado)",
+            "icon": "money-bill",
+            "enabled": True
+        }
+    ]
     
     return render(request, 'payments/checkout.html', {
         'cart_items': cart_items,
@@ -59,22 +111,23 @@ def create_payment(request):
         if not cart_items:
             return JsonResponse({'error': 'Carrito vacío'}, status=400)
         
-        payment_uc = get_payment_usecases()
-        
-        # Crear pago
-        response = payment_uc.create_payment_request(
+        # Crear PaymentRequest
+        payment_request = PaymentRequest(
             amount=float(data['amount']),
             description=data['description'],
+            items=cart_items,
             customer_email=request.user.email,
             customer_name=request.user.get_full_name() or request.user.username,
-            items=cart_items,
             payment_method=PaymentMethod(data['payment_method']),
-            currency=Currency.COP,  # Por defecto pesos colombianos
+            currency=Currency.COP,
             customer_phone=data.get('phone'),
             return_url=request.build_absolute_uri('/payment/success/'),
             cancel_url=request.build_absolute_uri('/payment/cancel/'),
             metadata={'user_id': request.user.id}
         )
+        
+        # Usar servicio simple
+        response = simple_payment_service.create_payment(payment_request)
         
         if response.status == PaymentStatus.FAILED:
             return JsonResponse({
