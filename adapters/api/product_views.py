@@ -133,30 +133,14 @@ def add_to_cart(request, pk):
     
     if request.user.is_authenticated:
         try:
-            # Usar carrito de sesión para usuarios (simple y funcional)
-            cart = request.session.get('cart', [])
-            
-            # Verificar si el producto ya está en el carrito
-            for item in cart:
-                if item['id'] == str(pk):
-                    item['quantity'] += quantity
-                    success = True
-                    break
-            else:
-                # Agregar nuevo producto (simulado)
-                cart.append({
-                    'id': str(pk),
-                    'name': f'Producto {pk}',
-                    'price': 100000,  # Precio simulado
-                    'quantity': quantity,
-                    'image': '/static/images/product-placeholder.jpg'
-                })
-                success = True
-            
-            request.session['cart'] = cart
-            request.session.modified = True
+            # Usar carrito real en base de datos
+            get_cart_usecases().add_to_cart(
+                user_id=request.user.id,
+                product_id=pk,
+                quantity=quantity
+            )
+            success = True
             messages.success(request, 'Producto agregado al carrito.')
-            
         except Exception as e:
             error_message = str(e)
             messages.error(request, error_message)
@@ -169,7 +153,7 @@ def add_to_cart(request, pk):
         messages.success(request, 'Producto agregado al carrito.')
     
     # Si es una petición AJAX, devolver JSON
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/x-www-form-urlencoded':
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         from django.http import JsonResponse
         if success:
             return JsonResponse({'success': True})

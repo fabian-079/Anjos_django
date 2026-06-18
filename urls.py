@@ -27,6 +27,7 @@ from adapters.api.cart_views import cart_view, cart_update, cart_remove
 from adapters.api.order_views import (
     order_index, order_show, checkout_view, order_create,
     order_edit_form, order_update, order_delete,
+    stripe_success, stripe_cancel, stripe_webhook,
 )
 from adapters.api.repair_views import (
     repair_index, repair_show, repair_create_form, repair_create,
@@ -126,6 +127,11 @@ urlpatterns = [
     path('orders/<int:pk>/update/', order_update, name='order_update'),
     path('orders/<int:pk>/delete/', order_delete, name='order_delete'),
 
+    # Stripe Checkout callbacks
+    path('orders/stripe/success/', stripe_success, name='stripe_success'),
+    path('orders/stripe/cancel/', stripe_cancel, name='stripe_cancel'),
+    path('webhooks/stripe/', stripe_webhook, name='stripe_webhook'),
+
     # Repairs
     path('reparaciones/', repair_index, name='repair_index'),
     path('reparaciones/create/', repair_create_form, name='repair_create_form'),
@@ -212,12 +218,12 @@ urlpatterns = [
     # path('webhook/paypal/', payment_webhook_paypal, name='payment_webhook_paypal'),
     # path('webhook/wompi/', payment_webhook_wompi, name='payment_webhook_wompi'),
     
-    # Checkout Simple - FUNCIONAL
-    path('checkout/', simple_checkout_view, name='simple_checkout'),
-    path('payment/success/', simple_payment_success_view, name='simple_payment_success'),
-    path('api/simple-buy-now/', simple_buy_now_ajax, name='simple_buy_now_ajax'),
-    path('api/create-stripe-checkout/', create_stripe_checkout, name='create_stripe_checkout'),
-    path('api/clear-cart/', clear_cart_api, name='clear_cart_api'),
+    # Checkout Simple - DESHABILITADO (reemplazado por flujo profesional Stripe)
+    # path('checkout/', simple_checkout_view, name='simple_checkout'),
+    # path('payment/success/', simple_payment_success_view, name='simple_payment_success'),
+    # path('api/simple-buy-now/', simple_buy_now_ajax, name='simple_buy_now_ajax'),
+    # path('api/create-stripe-checkout/', create_stripe_checkout, name='create_stripe_checkout'),
+    # path('api/clear-cart/', clear_cart_api, name='clear_cart_api'),
     
     # Manejo de archivos locales en producción (Ruta /uploads/)
     path('uploads/<path:path>', serve, {'document_root': '/app/uploads'}),

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Pago Exitoso - ANJOS{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="text-center mb-4">
+                <div class="mb-3" style="width:80px;height:80px;background:#e8f5e9;border-radius:50%;display:inline-flex;align-items:center;justify-content:center">
+                    <i class="bi bi-check-lg" style="font-size:2.5rem;color:#2e7d32"></i>
+                </div>
+                <h2 style="font-family:'Playfair Display',serif">¡Pago Exitoso!</h2>
+                <p class="text-muted">Tu compra ha sido procesada exitosamente.</p>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="mb-3" style="font-family:'Playfair Display',serif">Resumen de la orden</h5>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Número de orden</span>
+                        <span class="fw-bold">{{ order.order_number }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Estado</span>
+                        <span class="badge bg-success">En proceso</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Método de pago</span>
+                        <span>Tarjeta de crédito/débito (Stripe)</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted small">Total pagado</span>
+                        <span class="fw-bold fs-5">${{ order.total|floatformat:0 }}</span>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="mb-3">Productos</h6>
+                    {% for item in order.items %}
+                    <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid #f0f0f0">
+                        <div>
+                            <span class="fw-bold">{{ item.product_name }}</span>
+                            <span class="text-muted small">x{{ item.quantity }}</span>
+                        </div>
+                        <span>${{ item.subtotal|floatformat:0 }}</span>
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-flex justify-content-between py-3 mt-2" style="border-top:2px solid #ddd">
+                        <span class="fw-bold">Total</span>
+                        <span class="fw-bold fs-5">${{ order.total|floatformat:0 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info mt-4 d-flex align-items-center gap-2">
+                <i class="bi bi-info-circle"></i>
+                <div>
+                    <strong>Importante:</strong> Hemos enviado una confirmación a tu correo. Guarda tu número de orden para futuras referencias.
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 justify-content-center mt-4">
+                <a href="{% url 'order_show' pk=order.id %}" class="btn btn-dark">
+                    <i class="bi bi-receipt me-1"></i> Ver mi orden
+                </a>
+                <a href="{% url 'catalogo' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Seguir comprando
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
