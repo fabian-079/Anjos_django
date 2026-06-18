@@ -99,8 +99,9 @@ class EmailUseCases:
             return 0
     
     def _send_mass_email_sync(self, subject: str, message: str, user_role: str = None) -> int:
-        """Versión síncrona para Railway"""
+        """Versión síncrona mejorada para Railway con envío por lotes"""
         import logging
+        import time
         logger = logging.getLogger(__name__)
         
         try:
@@ -111,32 +112,49 @@ class EmailUseCases:
             
             logger.info(f"Preparando envío masivo síncrono a {len(users)} usuarios")
             
+            # Crear mensajes
             messages = []
             for user in users:
                 if user.email and user.is_active:
                     personalized_message = message.replace('{name}', user.name)
                     messages.append((subject, personalized_message, settings.DEFAULT_FROM_EMAIL, [user.email]))
             
-            if messages:
+            if not messages:
+                logger.warning("No hay usuarios válidos para enviar correos")
+                return 0
+            
+            # Enviar en lotes pequeños para evitar timeouts
+            sent_count = 0
+            batch_size = 5  # Enviar máximo 5 correos a la vez
+            
+            for i in range(0, len(messages), batch_size):
+                batch = messages[i:i + batch_size]
+                logger.info(f"Enviando lote {i//batch_size + 1}/{(len(messages)-1)//batch_size + 1} ({len(batch)} correos)")
+                
                 try:
-                    result = send_mass_mail(messages, fail_silently=False)
-                    logger.info(f"Envío masivo síncrono completado: {result} correos enviados")
-                    return result
-                except Exception as email_error:
-                    logger.error(f"Error específico de SMTP: {str(email_error)}")
-                    # Intentar enviar uno por uno si falla el envío masivo
-                    sent_count = 0
-                    for subject, message, from_email, recipient_list in messages:
+                    # Intentar enviar el lote completo
+                    result = send_mass_mail(batch, fail_silently=False)
+                    sent_count += result
+                    logger.info(f"Lote enviado exitosamente: {result} correos")
+                    
+                    # Pequeña pausa entre lotes para no sobrecargar el servidor
+                    time.sleep(1)
+                    
+                except Exception as batch_error:
+                    logger.error(f"Error en lote {i//batch_size + 1}: {str(batch_error)}")
+                    
+                    # Si falla el lote, intentar enviar uno por uno
+                    for subject, message, from_email, recipient_list in batch:
                         try:
                             send_mail(subject, message, from_email, recipient_list, fail_silently=False)
                             sent_count += 1
+                            logger.info(f"Correo individual enviado a {recipient_list[0]}")
+                            time.sleep(0.5)  # Pausa entre correos individuales
                         except Exception as individual_error:
-                            logger.error(f"Error enviando a {recipient_list[0]}: {str(individual_error)}")
-                    logger.info(f"Envío individual completado: {sent_count}/{len(messages)} correos enviados")
-                    return sent_count
-            else:
-                logger.warning("No hay usuarios válidos para enviar correos")
-                return 0
+                            logger.error(f"Error individual a {recipient_list[0]}: {str(individual_error)}")
+            
+            logger.info(f"Envío masivo completado: {sent_count}/{len(messages)} correos enviados")
+            return sent_count
                 
         except Exception as e:
             logger.error(f"Error general en envío masivo síncrono: {str(e)}")
