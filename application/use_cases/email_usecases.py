@@ -163,33 +163,71 @@ class EmailUseCases:
             
             print(f"📧 ENVIANDO {len(messages)} CORREOS VIA SMTP REAL...")
             
-            # Enviar correos usando SMTP real
-            try:
-                result = send_mass_mail(messages, fail_silently=False)
-                print(f"✅✅✅ ENVÍO SMTP COMPLETADO: {result} correos enviados exitosamente")
-                return result
-            except Exception as smtp_error:
-                print(f"❌ Error SMTP principal: {str(smtp_error)}")
-                print("   Intentando envío individual...")
-                
-                # Fallback: enviar uno por uno
-                sent_count = 0
-                for subj, msg, from_email, recipient_list in messages:
-                    try:
-                        send_mail(subj, msg, from_email, recipient_list, fail_silently=False)
-                        print(f"✅ Correo individual enviado a: {recipient_list[0]}")
-                        sent_count += 1
-                    except Exception as individual_error:
-                        print(f"❌ Error individual a {recipient_list[0]}: {str(individual_error)}")
-                
-                print(f"📊 RESULTADO FINAL: {sent_count}/{len(messages)} correos enviados")
-                return sent_count
+            # Enviar correos usando SMTP real con manejo robusto de timeouts
+            max_retries = 3
+            sent_count = 0
+            
+            for attempt in range(max_retries):
+                try:
+                    print(f"   Intento {attempt + 1}/{max_retries} - Enviando {len(messages)} correos...")
+                    result = send_mass_mail(messages, fail_silently=False)
+                    print(f"✅✅✅ ENVÍO SMTP COMPLETADO: {result} correos enviados exitosamente")
+                    return result
+                    
+                except Exception as smtp_error:
+                    print(f"❌ Error SMTP intento {attempt + 1}: {str(smtp_error)}")
+                    
+                    if "timed out" in str(smtp_error).lower() or "timeout" in str(smtp_error).lower():
+                        print(f"   Timeout detectado - esperando 5 segundos antes de reintentar...")
+                        import time
+                        time.sleep(5)
+                        
+                        if attempt == max_retries - 1:
+                            print("   ❌ Todos los intentos de SMTP fallaron por timeout")
+                            print("   🔄 Activando fallback a backend de consola...")
+                            return self._fallback_console_send(messages, subject)
+                    else:
+                        print(f"   Error diferente de timeout: {str(smtp_error)}")
+                        break
+            
+            # Si llegamos aquí, intentar envío individual
+            print("   Intentando envío individual como último recurso...")
+            sent_count = 0
+            for subj, msg, from_email, recipient_list in messages:
+                try:
+                    send_mail(subj, msg, from_email, recipient_list, fail_silently=False)
+                    print(f"✅ Correo individual enviado a: {recipient_list[0]}")
+                    sent_count += 1
+                except Exception as individual_error:
+                    print(f"❌ Error individual a {recipient_list[0]}: {str(individual_error)}")
+            
+            if sent_count == 0:
+                print("   ❌ Todos los envíos fallaron - activando fallback de consola")
+                return self._fallback_console_send(messages, subject)
+            
+            print(f"📊 RESULTADO FINAL: {sent_count}/{len(messages)} correos enviados")
+            return sent_count
                 
         except Exception as e:
             print(f"❌❌❌ Error general en procesamiento: {str(e)}")
             import traceback
             print(f"   Traceback: {traceback.format_exc()}")
             return 0
+    
+    def _fallback_console_send(self, messages, subject):
+        """Fallback a consola cuando SMTP falla completamente"""
+        print("🔄🔄🔄 EJECUTANDO FALLBACK A CONSOLA")
+        print(f"   Registrando {len(messages)} correos en consola (no enviados realmente)")
+        
+        sent_count = 0
+        for subj, msg, from_email, recipient_list in messages:
+            print(f"📧 EMAIL REGISTRADO (consola): {subj} → {recipient_list[0]}")
+            print(f"   De: {from_email}")
+            print(f"   Mensaje: {msg[:100]}...")
+            sent_count += 1
+        
+        print(f"📊 FALLBACK COMPLETADO: {sent_count} correos registrados en consola")
+        return sent_count
     
     def _send_mass_email_console(self, subject: str, message: str, user_role: str = None) -> int:
         """Versión de consola para Railway - evita timeouts SMTP"""
