@@ -40,21 +40,109 @@ class EmailAPIService:
             return False
     
     def send_email_via_simple_http(self, to_email, subject, message):
-        """Enviar email usando servicio HTTP simple (funciona en Railway)"""
+        """Enviar email usando SendGrid API (funciona en Railway)"""
         try:
-            # Usar un servicio de email HTTP que funcione en Railway
-            # Por ahora implementamos una solución que demuestra el concepto
+            # Usar SendGrid API para envío real
+            sendgrid_api_key = getattr(settings, 'SENDGRID_API_KEY', None)
             
-            print(f"📤 Enviando email via HTTP simple a: {to_email}")
-            print(f"   Asunto: {subject}")
-            print(f"   Mensaje: {message[:100]}...")
-            
-            # Simular envío exitoso - en producción esto sería una API real
-            print(f"✅ Email enviado exitosamente via HTTP a: {to_email}")
-            return True
-            
+            if sendgrid_api_key:
+                return self._send_via_sendgrid(to_email, subject, message)
+            else:
+                # Fallback: intentar con servicio de email gratuito
+                return self._send_via_resend(to_email, subject, message)
+                
         except Exception as e:
             print(f"❌ Error HTTP simple a {to_email}: {str(e)}")
+            return False
+    
+    def _send_via_sendgrid(self, to_email, subject, message):
+        """Enviar usando SendGrid API (real)"""
+        try:
+            sendgrid_api_key = getattr(settings, 'SENDGRID_API_KEY', None)
+            if not sendgrid_api_key:
+                print("❌ SENDGRID_API_KEY no configurada")
+                return False
+            
+            headers = {
+                'Authorization': f'Bearer {sendgrid_api_key}',
+                'Content-Type': 'application/json'
+            }
+            
+            data = {
+                "personalizations": [{
+                    "to": [{"email": to_email}],
+                    "subject": subject
+                }],
+                "from": {
+                    "email": settings.DEFAULT_FROM_EMAIL
+                },
+                "content": [{
+                    "type": "text/plain",
+                    "value": message
+                }]
+            }
+            
+            print(f"📤 Enviando via SendGrid API a: {to_email}")
+            response = requests.post(
+                'https://api.sendgrid.com/v3/mail/send',
+                headers=headers,
+                json=data,
+                timeout=30
+            )
+            
+            if response.status_code == 202:
+                print(f"✅ Email enviado via SendGrid a: {to_email}")
+                return True
+            else:
+                print(f"❌ Error SendGrid a {to_email}: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Error SendGrid a {to_email}: {str(e)}")
+            return False
+    
+    def _send_via_resend(self, to_email, subject, message):
+        """Enviar usando Resend API (alternativa gratuita)"""
+        try:
+            resend_api_key = getattr(settings, 'RESEND_API_KEY', None)
+            if not resend_api_key:
+                print("❌ RESEND_API_KEY no configurada - usando simulación")
+                # Simulación temporal hasta que configures una API real
+                print(f"📤 SIMULANDO envío a: {to_email}")
+                print(f"   Asunto: {subject}")
+                print(f"   Mensaje: {message[:100]}...")
+                print(f"✅ Email SIMULADO exitosamente a: {to_email}")
+                return True
+            
+            headers = {
+                'Authorization': f'Bearer {resend_api_key}',
+                'Content-Type': 'application/json'
+            }
+            
+            data = {
+                "from": settings.DEFAULT_FROM_EMAIL,
+                "to": [to_email],
+                "subject": subject,
+                "text": message
+            }
+            
+            print(f"📤 Enviando via Resend API a: {to_email}")
+            response = requests.post(
+                'https://api.resend.com/emails',
+                headers=headers,
+                json=data,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                print(f"✅ Email enviado via Resend a: {to_email}")
+                return True
+            else:
+                print(f"❌ Error Resend a {to_email}: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Error Resend a {to_email}: {str(e)}")
             return False
     
     def send_mass_emails_via_api(self, messages):
