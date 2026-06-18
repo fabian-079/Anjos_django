@@ -166,13 +166,13 @@ class EmailUseCases:
             
             print(f"📧 ENVIANDO {len(messages)} CORREOS VIA SMTP REAL...")
             
-            # Enviar correos usando SMTP real con manejo robusto de timeouts
-            max_retries = 3
+            # Intentar SMTP primero, luego API HTTP si hay problemas de red
+            max_retries = 2
             sent_count = 0
             
             for attempt in range(max_retries):
                 try:
-                    print(f"   Intento {attempt + 1}/{max_retries} - Enviando {len(messages)} correos...")
+                    print(f"   Intento SMTP {attempt + 1}/{max_retries} - Enviando {len(messages)} correos...")
                     result = send_mass_mail(messages, fail_silently=False)
                     print(f"✅✅✅ ENVÍO SMTP COMPLETADO: {result} correos enviados exitosamente")
                     return result
@@ -180,17 +180,15 @@ class EmailUseCases:
                 except Exception as smtp_error:
                     print(f"❌ Error SMTP intento {attempt + 1}: {str(smtp_error)}")
                     
-                    if "timed out" in str(smtp_error).lower() or "timeout" in str(smtp_error).lower():
-                        print(f"   Timeout detectado - esperando 5 segundos antes de reintentar...")
+                    if "Network is unreachable" in str(smtp_error) or "101" in str(smtp_error):
+                        print("   🔥 Problema de red detectado - cambiando a API HTTP")
+                        return self._send_via_api_fallback(messages, subject)
+                    elif "timed out" in str(smtp_error).lower() or "timeout" in str(smtp_error).lower():
+                        print(f"   Timeout detectado - esperando 5 segundos...")
                         import time
                         time.sleep(5)
-                        
-                        if attempt == max_retries - 1:
-                            print("   ❌ Todos los intentos de SMTP fallaron por timeout")
-                            print("   🔄 Activando fallback a backend de consola...")
-                            return self._fallback_console_send(messages, subject)
                     else:
-                        print(f"   Error diferente de timeout: {str(smtp_error)}")
+                        print(f"   Error diferente: {str(smtp_error)}")
                         break
             
             # Si llegamos aquí, intentar envío individual
@@ -231,6 +229,20 @@ class EmailUseCases:
         
         print(f"📊 FALLBACK COMPLETADO: {sent_count} correos registrados en consola")
         return sent_count
+    
+    def _send_via_api_fallback(self, messages, subject):
+        """Fallback a API HTTP cuando SMTP falla por problemas de red"""
+        print("🌐 CAMBIANDO A API HTTP DE BREVO")
+        
+        try:
+            from application.services.email_api_service import email_api
+            result = email_api.send_mass_emails_via_api(messages)
+            print(f"🎉 API HTTP COMPLETADA: {result} correos enviados")
+            return result
+        except Exception as api_error:
+            print(f"❌ Error en API HTTP: {str(api_error)}")
+            print("   🔄 Activando fallback final a consola...")
+            return self._fallback_console_send(messages, subject)
     
     def _send_mass_email_console(self, subject: str, message: str, user_role: str = None) -> int:
         """Versión de consola para Railway - evita timeouts SMTP"""
