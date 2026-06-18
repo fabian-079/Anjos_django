@@ -63,8 +63,7 @@ def checkout_view(request):
 @login_required
 def order_create(request):
     """
-    Crear la orden y, si el método es TARJETA y Stripe está configurado,
-    redirigir al usuario a Stripe Checkout.
+    Crear la orden y, si el metodo es TARJETA o PSE, redirigir al gateway de pago.
     """
     if request.method != 'POST':
         return redirect('checkout')
@@ -83,8 +82,20 @@ def order_create(request):
     except ValueError as e:
         messages.error(request, str(e))
         return redirect('checkout')
+    except Exception as e:
+        messages.error(request, f'Error inesperado al crear la orden: {str(e)}')
+        return redirect('checkout')
 
-    # Si es pago con tarjeta, intentar redirigir a Stripe Checkout
+    # Verificar que la orden tenga ID valido antes de continuar
+    if not order or not order.id:
+        messages.error(request, 'La orden no se pudo guardar. Intenta nuevamente.')
+        return redirect('checkout')
+
+    # Guardar order_id en sesion como respaldo para callbacks
+    request.session['last_order_id'] = order.id
+    request.session['last_order_number'] = order.order_number
+
+    # --- TARJETA (Stripe) ---
     if payment_method == 'TARJETA':
         stripe_service = StripeCheckoutService()
         if stripe_service.is_configured():
@@ -97,19 +108,17 @@ def order_create(request):
             else:
                 messages.warning(
                     request,
-                    f'Orden creada, pero no se pudo iniciar Stripe: {result["error"]}. '
-                    f'Puedes pagarla más tarde desde Mis Órdenes.'
+                    f'Orden {order.order_number} creada, pero no se pudo iniciar Stripe: {result.get("error", "Error desconocido")}. '
+                    f'Puedes pagarla mas tarde desde Mis Ordenes.'
                 )
-                return redirect('order_show', pk=order.id)
         else:
             messages.info(
                 request,
-                f'Orden {order.order_number} creada exitosamente. '
-                f'El pago con tarjeta está en configuración; contacta al administrador para finalizar.'
+                f'Orden {order.order_number} creada. El pago con tarjeta esta en configuracion.'
             )
-            return redirect('order_show', pk=order.id)
+        return redirect('order_show', pk=order.id)
 
-    # Si es PSE, crear transacción en Wompi y redirigir al banco
+    # --- PSE (Wompi) ---
     if payment_method == 'PSE':
         bank_code = request.POST.get('pse_bank', '').strip()
         user_type = request.POST.get('pse_user_type', '0')
@@ -120,12 +129,11 @@ def order_create(request):
             messages.error(request, 'Debes seleccionar un banco para PSE.')
             return redirect('checkout')
         if not user_legal_id:
-            messages.error(request, 'Debes ingresar tu número de documento para PSE.')
+            messages.error(request, 'Debes ingresar tu numero de documento para PSE.')
             return redirect('checkout')
 
         wompi_service = WompiService()
         if wompi_service.is_configured():
-            # Obtener nombre del banco para detectar bancos de prueba en sandbox
             pse_banks = wompi_service.get_pse_banks()
             bank_name = ''
             for b in pse_banks:
@@ -149,32 +157,29 @@ def order_create(request):
                 if result.get('redirect_url'):
                     return redirect(result['redirect_url'])
                 else:
-                    messages.success(
+                    messages.warning(
                         request,
-                        f'Orden {order.order_number} creada. Inicia la transferencia PSE desde Mis Órdenes.'
+                        f'Orden {order.order_number} creada, pero Wompi no devolvio URL de pago. '
+                        f'Detalles: {result.get("debug_data", "N/A")}. Intenta desde Mis Ordenes.'
                     )
-                    return redirect('order_show', pk=order.id)
             else:
                 messages.warning(
                     request,
-                    f'Orden creada, pero no se pudo iniciar PSE: {result["error"]}. '
-                    f'Puedes intentar nuevamente desde Mis Órdenes.'
+                    f'Orden {order.order_number} creada, pero no se pudo iniciar PSE: {result.get("error", "Error desconocido")}. '
+                    f'Puedes intentar nuevamente desde Mis Ordenes.'
                 )
-                return redirect('order_show', pk=order.id)
         else:
             messages.info(
                 request,
-                f'Orden {order.order_number} creada exitosamente. '
-                f'El pago PSE está en configuración; contacta al administrador para finalizar.'
+                f'Orden {order.order_number} creada. El pago PSE esta en configuracion.'
             )
-            return redirect('order_show', pk=order.id)
+        return redirect('order_show', pk=order.id)
 
-    # Efectivo: pago contra entrega
+    # --- EFECTIVO ---
     if payment_method == 'EFECTIVO':
         messages.success(
             request,
-            f'Orden {order.order_number} creada exitosamente. '
-            f'Pagas ${{ order.total }} contra entrega al recibir tu pedido.'
+            f'Orden {order.order_number} creada exitosamente. Pagas contra entrega al recibir tu pedido.'
         )
         return redirect('order_show', pk=order.id)
 
@@ -185,34 +190,38 @@ def order_create(request):
 @login_required
 def stripe_success(request):
     """
-    Stripe redirige aquí después de un pago exitoso.
-    Actualiza la orden a PROCESSING y muestra confirmación.
+    Stripe redirige aqui despues de un pago exitoso.
+    Actualiza la orden a PROCESSING y muestra confirmacion.
     """
     order_id = request.GET.get('order_id')
+    # Fallback: buscar en sesion si no viene en URL
     if not order_id:
-        messages.error(request, 'No se encontró información de la orden.')
+        order_id = request.session.get('last_order_id')
+
+    if not order_id:
+        messages.error(request, 'No se encontro informacion de la orden en la URL ni en la sesion.')
         return redirect('order_index')
 
     try:
         order_id = int(order_id)
     except ValueError:
-        messages.error(request, 'ID de orden inválido.')
+        messages.error(request, 'ID de orden invalido.')
         return redirect('order_index')
 
     order = get_order_usecases().get_order_by_id(order_id)
     if not order:
-        messages.error(request, 'Orden no encontrada.')
+        messages.error(request, f'Orden #{order_id} no encontrada en la base de datos.')
         return redirect('order_index')
 
     if order.user_id != request.user.id and not request.user.is_admin():
         messages.error(request, 'No tienes permiso para ver esta orden.')
         return redirect('order_index')
 
-    # Actualizar estado a PROCESSING si está PENDING
+    # Actualizar estado a PROCESSING si esta PENDING
     if order.status == OrderStatus.PENDING:
         try:
             get_order_usecases().update_order_status(order_id, OrderStatus.PROCESSING)
-            messages.success(request, f'¡Pago confirmado! Tu orden {order.order_number} está en proceso.')
+            messages.success(request, f'Pago confirmado! Tu orden {order.order_number} esta en proceso.')
         except Exception as e:
             messages.warning(request, f'Pago recibido, pero hubo un problema actualizando la orden: {e}')
     elif order.status == OrderStatus.PROCESSING:
@@ -224,23 +233,26 @@ def stripe_success(request):
 @login_required
 def stripe_cancel(request):
     """
-    Stripe redirige aquí si el usuario cancela el pago.
+    Stripe redirige aqui si el usuario cancela el pago.
     La orden queda en PENDING para que pueda reintentar.
     """
     order_id = request.GET.get('order_id')
     if not order_id:
-        messages.error(request, 'No se encontró información de la orden.')
+        order_id = request.session.get('last_order_id')
+
+    if not order_id:
+        messages.error(request, 'No se encontro informacion de la orden en la URL ni en la sesion.')
         return redirect('order_index')
 
     try:
         order_id = int(order_id)
     except ValueError:
-        messages.error(request, 'ID de orden inválido.')
+        messages.error(request, 'ID de orden invalido.')
         return redirect('order_index')
 
     order = get_order_usecases().get_order_by_id(order_id)
     if not order:
-        messages.error(request, 'Orden no encontrada.')
+        messages.error(request, f'Orden #{order_id} no encontrada en la base de datos.')
         return redirect('order_index')
 
     if order.user_id != request.user.id and not request.user.is_admin():
@@ -250,7 +262,7 @@ def stripe_cancel(request):
     messages.warning(
         request,
         f'El pago de la orden {order.order_number} fue cancelado. '
-        f'Puedes intentar nuevamente desde Mis Órdenes.'
+        f'Puedes intentar nuevamente desde Mis Ordenes.'
     )
     return redirect('order_show', pk=order.id)
 
@@ -304,20 +316,19 @@ def stripe_webhook(request):
 @login_required
 def wompi_callback(request):
     """
-    Wompi redirige aquí después de que el usuario completa el pago PSE.
-    El estado real se confirma vía webhook, pero aquí mostramos feedback al usuario.
+    Wompi redirige aqui despues de que el usuario completa el pago PSE.
+    El estado real se confirma via webhook, pero aqui mostramos feedback al usuario.
     """
-    # Wompi pasa el id de la transacción en la URL
     transaction_id = request.GET.get('id')
     status = request.GET.get('status', 'PENDING')
     reference = request.GET.get('reference', '')
 
-    # Intentar extraer el order_id del reference (formato: ANJOS-ORD-{timestamp})
     order_id = None
     order_number = None
+
+    # Metodo 1: extraer de reference (ANJOS-ORD-{timestamp})
     if reference.startswith('ANJOS-'):
         order_number = reference.replace('ANJOS-', '')
-        # Buscar orden por número de orden
         try:
             order = get_order_usecases().get_by_order_number(order_number)
             if order:
@@ -325,8 +336,8 @@ def wompi_callback(request):
         except Exception:
             pass
 
+    # Metodo 2: buscar via API Wompi por transaction_id
     if not order_id and transaction_id:
-        # Fallback: buscar en el servicio Wompi por transaction_id
         wompi_service = WompiService()
         txn = wompi_service.get_transaction_status(transaction_id)
         if txn.get('success'):
@@ -340,13 +351,18 @@ def wompi_callback(request):
                 except Exception:
                     pass
 
+    # Metodo 3: fallback a sesion
     if not order_id:
-        messages.error(request, 'No se encontró información de la orden.')
+        order_id = request.session.get('last_order_id')
+        order_number = request.session.get('last_order_number')
+
+    if not order_id:
+        messages.error(request, 'No se encontro informacion de la orden. Ref: ' + (reference or 'N/A'))
         return redirect('order_index')
 
     order = get_order_usecases().get_order_by_id(order_id)
     if not order:
-        messages.error(request, 'Orden no encontrada.')
+        messages.error(request, f'Orden #{order_id} no encontrada en la base de datos.')
         return redirect('order_index')
 
     if order.user_id != request.user.id and not request.user.is_admin():
@@ -359,7 +375,7 @@ def wompi_callback(request):
                 get_order_usecases().update_order_status(order_id, OrderStatus.PROCESSING)
             except Exception:
                 pass
-        messages.success(request, f'¡Pago PSE confirmado! Tu orden {order.order_number} está en proceso.')
+        messages.success(request, f'Pago PSE confirmado! Tu orden {order.order_number} esta en proceso.')
         return render(request, 'orders/stripe_success.html', {'order': order})
     elif status.upper() in ('DECLINED', 'REJECTED', 'DENIED'):
         messages.error(request, f'El pago PSE de la orden {order.order_number} fue rechazado.')
@@ -367,7 +383,7 @@ def wompi_callback(request):
     else:
         messages.info(
             request,
-            f'Orden {order.order_number}: tu pago PSE está siendo procesado. '
+            f'Orden {order.order_number}: tu pago PSE esta siendo procesado. '
             f'Te notificaremos cuando se confirme.'
         )
         return redirect('order_show', pk=order.id)
