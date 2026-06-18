@@ -28,43 +28,40 @@ def email_mass_send_debug(request):
 
 @admin_required
 def email_mass_send(request):
-    import logging
-    logger = logging.getLogger(__name__)
-    
-    logger.info("🔥 VISTA email_mass_send LLAMADA")
-    logger.info(f"   Método: {request.method}")
+    print("🔥🔥🔥 VISTA email_mass_send LLAMADA - RAILWAY")
+    print(f"   Método: {request.method}")
     
     if request.method != 'POST':
-        logger.info("   No es POST - redirigiendo")
+        print("   No es POST - redirigiendo")
         return redirect('email_mass_send_form')
     
     subject = request.POST.get('subject', '').strip()
     message = request.POST.get('message', '').strip()
     recipient_type = request.POST.get('recipient_type', 'all')
     
-    logger.info(f"   Datos recibidos: subject='{subject}', message_length={len(message)}, recipient_type='{recipient_type}'")
+    print(f"   Datos recibidos: subject='{subject}', message_length={len(message)}, recipient_type='{recipient_type}'")
     
     if not subject or not message:
-        logger.warning("   Faltan datos - subject o message vacíos")
+        print("   ❌ Faltan datos - subject o message vacíos")
         messages.error(request, 'Asunto y mensaje son requeridos.')
         return redirect('email_mass_send_form')
     
-    logger.info("   Obteniendo email use cases...")
+    print("   Obteniendo email use cases...")
     email_uc = get_email_usecases()
     role = 'cliente' if recipient_type == 'clients' else ('admin' if recipient_type == 'admins' else None)
     
-    logger.info(f"   Role determinado: '{role}'")
-    logger.info("   Llamando a send_mass_promotional_email...")
+    print(f"   Role determinado: '{role}'")
+    print("   Llamando a send_mass_promotional_email...")
     
     try:
         # Llamada directa para evitar problemas
         result = email_uc.send_mass_promotional_email(subject, message, role)
-        logger.info(f"   ✅ Resultado: {result}")
+        print(f"   ✅ Resultado: {result}")
         messages.success(request, f'Envío masivo completado: {result} correos procesados.')
     except Exception as e:
-        logger.error(f"   ❌ Error: {str(e)}")
+        print(f"   ❌ Error: {str(e)}")
         import traceback
-        logger.error(f"   Traceback: {traceback.format_exc()}")
+        print(f"   Traceback: {traceback.format_exc()}")
         messages.error(request, f'Error al iniciar el envío: {e}')
     
     return redirect('email_mass_send_form')

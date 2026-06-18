@@ -88,55 +88,55 @@ class EmailUseCases:
             return False
 
     def send_mass_promotional_email(self, subject: str, message: str, user_role: str = None) -> int:
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        # Logging inmediato para detectar si se llama la función
-        logger.info("🚀 FUNCIÓN send_mass_promotional_email LLAMADA")
-        logger.info(f"   Parámetros: subject='{subject}', message_length={len(message)}, user_role='{user_role}'")
+        print("🚀🚀🚀 FUNCIÓN send_mass_promotional_email LLAMADA - RAILWAY")
+        print(f"   Parámetros: subject='{subject}', message_length={len(message)}, user_role='{user_role}'")
         
         # Forzar ejecución síncrona en Railway - el worker de background tasks no está procesando
         import os
         if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_SERVICE_NAME'):
-            logger.info("📍 DETECTADO ENTORNO RAILWAY - Ejecutando síncrono directo")
+            print("📍 DETECTADO ENTORNO RAILWAY - Ejecutando síncrono directo")
             # Ejecución síncrona directa en Railway para asegurar que se procese
             return self._send_mass_email_sync_direct(subject, message, user_role)
         else:
-            logger.info("📍 ENTORNO LOCAL - Ejecutando background task")
+            print("📍 ENTORNO LOCAL - Ejecutando background task")
             # Ejecución asíncrona en desarrollo local
             _send_mass_email_task(subject, message, user_role)
             return 0
     
     def _send_mass_email_sync_direct(self, subject: str, message: str, user_role: str = None) -> int:
         """Ejecución síncrona directa con backend de consola - procesamiento inmediato"""
-        import logging
-        
-        logger = logging.getLogger(__name__)
+        print("🎯🎯🎯 EJECUTANDO _send_mass_email_sync_direct - RAILWAY")
         
         try:
             users = self._user_repo.find_all()
+            print(f"   Usuarios encontrados: {len(users)}")
             
             if user_role:
                 users = [u for u in users if user_role.lower() in [r.lower() for r in u.roles]]
+                print(f"   Usuarios filtrados por role '{user_role}': {len(users)}")
             
-            logger.info(f"PROCESANDO INMEDIATAMENTE: {len(users)} usuarios")
+            print(f"🔥 PROCESANDO INMEDIATAMENTE: {len(users)} usuarios")
             
             sent_count = 0
-            for user in users:
+            for i, user in enumerate(users):
                 if user.email and user.is_active:
                     personalized_message = message.replace('{name}', user.name)
                     
                     # Simular envío inmediato y exitoso
-                    logger.info(f"✅ EMAIL ENVIADO A: {user.email}")
-                    logger.info(f"   Asunto: {subject}")
-                    logger.info(f"   Mensaje: {personalized_message[:80]}...")
+                    print(f"✅ EMAIL ENVIADO A: {user.email}")
+                    print(f"   Asunto: {subject}")
+                    print(f"   Mensaje: {personalized_message[:80]}...")
                     sent_count += 1
+                else:
+                    print(f"⏭️ Usuario omitido: {user.email} (activo: {user.is_active})")
             
-            logger.info(f"🎉 ENVÍO COMPLETADO: {sent_count} correos procesados exitosamente")
+            print(f"🎉🎉🎉 ENVÍO COMPLETADO: {sent_count} correos procesados exitosamente")
             return sent_count
                 
         except Exception as e:
-            logger.error(f"❌ Error en procesamiento: {str(e)}")
+            print(f"❌❌❌ Error en procesamiento: {str(e)}")
+            import traceback
+            print(f"   Traceback: {traceback.format_exc()}")
             return 0
     
     def _send_mass_email_console(self, subject: str, message: str, user_role: str = None) -> int:
