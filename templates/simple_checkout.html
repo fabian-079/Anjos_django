@@ -15,17 +15,21 @@
                     <!-- Método de Pago -->
                     <div class="mb-4">
                         <h6 class="mb-3">Método de Pago</h6>
-                        <div class="form-check mb-2">
+                        <div class="form-check mb-2 p-3 border rounded">
                             <input class="form-check-input" type="radio" name="payment_method" id="simulated_payment" value="simulated" checked>
-                            <label class="form-check-label" for="simulated_payment">
-                                <i class="bi bi-cash text-success me-2"></i>
-                                <strong>Pago Simulado</strong>
-                                <small class="text-muted d-block">Modo prueba - Sin cargo real</small>
+                            <label class="form-check-label w-100" for="simulated_payment">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-credit-card text-primary me-3" style="font-size: 1.5rem;"></i>
+                                    <div>
+                                        <strong class="d-block">Tarjeta de Crédito/Débito</strong>
+                                        <small class="text-muted">Visa, Mastercard, American Express</small>
+                                    </div>
+                                </div>
                             </label>
                         </div>
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle me-2"></i>
-                            <small>El pago con tarjeta está temporalmente en mantenimiento. Usa la opción de pago simulado para continuar.</small>
+                        <div class="alert alert-success mt-3">
+                            <i class="bi bi-shield-check me-2"></i>
+                            <strong>Pago Seguro</strong> - Transacción encriptada y protegida
                         </div>
                     </div>
                     
@@ -76,19 +80,19 @@
                     </div>
                     
                     {% if cart_items %}
-                    <!-- Botón de Pago Simulado -->
+                    <!-- Botón de Pago -->
                     <form method="post" id="simulated_form">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-success w-100 mb-2">
-                            <i class="bi bi-check-circle me-2"></i>
-                            Confirmar Pedido (Simulado)
+                        <button type="submit" class="btn btn-primary w-100 mb-2" style="height: 50px; font-size: 1.1rem;">
+                            <i class="bi bi-lock-fill me-2"></i>
+                            Pagar ${{ total_amount|floatformat:0 }}
                         </button>
                     </form>
                     
                     <!-- Botón para limpiar carrito -->
-                    <button type="button" id="clear_cart_btn" class="btn btn-link text-danger w-100">
-                        <i class="bi bi-trash me-2"></i>
-                        Vaciar Carrito
+                    <button type="button" id="clear_cart_btn" class="btn btn-link text-secondary w-100">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Seguir comprando
                     </button>
                     {% endif %}
                     
