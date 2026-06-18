@@ -89,11 +89,17 @@
                     <!-- Botón de Pago Simulado -->
                     <form method="post" id="simulated_form">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-secondary w-100">
+                        <button type="submit" class="btn btn-outline-secondary w-100 mb-2">
                             <i class="bi bi-cash me-2"></i>
                             Confirmar Pedido (Simulado)
                         </button>
                     </form>
+                    
+                    <!-- Botón para limpiar carrito -->
+                    <button type="button" id="clear_cart_btn" class="btn btn-link text-danger w-100">
+                        <i class="bi bi-trash me-2"></i>
+                        Vaciar Carrito
+                    </button>
                     {% endif %}
                     
                     <div class="text-center">
@@ -167,6 +173,33 @@ document.addEventListener('DOMContentLoaded', function() {
             this.disabled = false;
         });
     });
+    
+    // Botón para limpiar carrito
+    const clearCartBtn = document.getElementById('clear_cart_btn');
+    if (clearCartBtn) {
+        clearCartBtn.addEventListener('click', function() {
+            if (confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
+                fetch('/api/clear-cart/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.error || 'No se pudo vaciar el carrito'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al vaciar el carrito');
+                });
+            }
+        });
+    }
     
     // Inicializar
     updatePaymentMethod();

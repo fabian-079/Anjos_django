@@ -14,6 +14,9 @@ def simple_checkout_view(request):
     if request.method == 'POST':
         # Simular procesamiento de pago
         messages.success(request, '¡Pedido procesado exitosamente! (Modo simulado)')
+        # Limpiar carrito después del pago
+        request.session['cart'] = []
+        request.session.modified = True
         return redirect('simple_payment_success')
     
     # Obtener datos del carrito
@@ -76,9 +79,11 @@ def create_stripe_checkout(request):
                 'error': 'Stripe no está configurado. Contacta al administrador.'
             })
         
-        # Crear URLs de retorno
-        success_url = request.build_absolute_uri('/payment/success/')
-        cancel_url = request.build_absolute_uri('/checkout/')
+        # Crear URLs de retorno - URLs absolutas explícitas
+        from django.conf import settings
+        base_url = getattr(settings, 'BASE_URL', 'https://anjosdjango-production.up.railway.app')
+        success_url = f'{base_url}/payment/success/'
+        cancel_url = f'{base_url}/checkout/'
         
         # Crear sesión de Stripe
         result = stripe_service.create_checkout_session(
@@ -111,3 +116,13 @@ def create_stripe_checkout(request):
             'success': False,
             'error': f'Error del servidor: {str(e)}'
         })
+
+@require_http_methods(["POST"])
+def clear_cart_api(request):
+    """API para limpiar el carrito"""
+    try:
+        request.session['cart'] = []
+        request.session.modified = True
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
