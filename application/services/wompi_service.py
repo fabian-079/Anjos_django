@@ -56,21 +56,35 @@ class WompiService:
 
     def get_pse_banks(self) -> list:
         """Obtener lista de bancos PSE desde Wompi API."""
+        # Siempre usar fallback por defecto (más confiable que la API en sandbox)
+        fallback = list(DEFAULT_PSE_BANKS)
+
         if not self.is_configured():
-            return DEFAULT_PSE_BANKS
+            return fallback
+
         try:
             resp = requests.get(
                 f"{self.base_url}/pse/financial_institutions",
                 headers={"Authorization": f"Bearer {self.public_key}"},
-                timeout=10,
+                timeout=8,
             )
             if resp.status_code == 200:
                 data = resp.json()
-                banks = data.get('data', [])
-                return sorted(banks, key=lambda b: b.get('name', ''))
+                raw_banks = data.get('data', [])
+                if raw_banks and isinstance(raw_banks, list) and len(raw_banks) > 0:
+                    # Normalizar formato: Wompi puede devolver code/name o financial_institution_code/financial_institution_name
+                    normalized = []
+                    for b in raw_banks:
+                        code = b.get('code') or b.get('financial_institution_code')
+                        name = b.get('name') or b.get('financial_institution_name')
+                        if code and name:
+                            normalized.append({'code': str(code), 'name': str(name)})
+                    if normalized:
+                        return sorted(normalized, key=lambda x: x['name'])
         except Exception:
             pass
-        return DEFAULT_PSE_BANKS
+
+        return fallback
 
     def create_pse_transaction(self, order, order_items, bank_code: str,
                                 user_type: int, user_legal_id: str,
