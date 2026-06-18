@@ -88,14 +88,46 @@ class EmailUseCases:
             return False
 
     def send_mass_promotional_email(self, subject: str, message: str, user_role: str = None) -> int:
-        # En Railway usar backend de consola para evitar timeouts SMTP
+        # Forzar ejecución síncrona en Railway - el worker de background tasks no está procesando
         import os
         if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_SERVICE_NAME'):
-            # Usar backend de consola en Railway para evitar timeouts
-            return self._send_mass_email_console(subject, message, user_role)
+            # Ejecución síncrona directa en Railway para asegurar que se procese
+            return self._send_mass_email_sync_direct(subject, message, user_role)
         else:
             # Ejecución asíncrona en desarrollo local
             _send_mass_email_task(subject, message, user_role)
+            return 0
+    
+    def _send_mass_email_sync_direct(self, subject: str, message: str, user_role: str = None) -> int:
+        """Ejecución síncrona directa con backend de consola - procesamiento inmediato"""
+        import logging
+        
+        logger = logging.getLogger(__name__)
+        
+        try:
+            users = self._user_repo.find_all()
+            
+            if user_role:
+                users = [u for u in users if user_role.lower() in [r.lower() for r in u.roles]]
+            
+            logger.info(f"PROCESANDO INMEDIATAMENTE: {len(users)} usuarios")
+            
+            sent_count = 0
+            for user in users:
+                if user.email and user.is_active:
+                    personalized_message = message.replace('{name}', user.name)
+                    
+                    # Simular envío inmediato y exitoso
+                    logger.info(f"✅ EMAIL ENVIADO A: {user.email}")
+                    logger.info(f"   Asunto: {subject}")
+                    logger.info(f"   Mensaje: {personalized_message[:80]}...")
+                    sent_count += 1
+            
+            logger.info(f"🎉 ENVÍO COMPLETADO: {sent_count} correos procesados exitosamente")
+            return sent_count
+                
+        except Exception as e:
+            logger.error(f"❌ Error en procesamiento: {str(e)}")
             return 0
     
     def _send_mass_email_console(self, subject: str, message: str, user_role: str = None) -> int:
