@@ -126,18 +126,35 @@ def product_delete(request, pk):
 def add_to_cart(request, pk):
     if request.method != 'POST':
         return redirect('producto_detalle', pk=pk)
+    
     quantity = int(request.POST.get('quantity', 1))
+    success = False
+    error_message = ""
+    
     if request.user.is_authenticated:
         try:
             get_cart_usecases().add_to_cart(request.user.id, pk, quantity)
+            success = True
             messages.success(request, 'Producto agregado al carrito.')
         except ValueError as e:
-            messages.error(request, str(e))
+            error_message = str(e)
+            messages.error(request, error_message)
     else:
         guest_cart = request.session.get('guest_cart', {})
         guest_cart[str(pk)] = guest_cart.get(str(pk), 0) + quantity
         request.session['guest_cart'] = guest_cart
+        success = True
         messages.success(request, 'Producto agregado al carrito.')
+    
+    # Si es una petición AJAX, devolver JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/x-www-form-urlencoded':
+        from django.http import JsonResponse
+        if success:
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'error': error_message})
+    
+    # Si no es AJAX, redirect normal
     return redirect('producto_detalle', pk=pk)
 
 
