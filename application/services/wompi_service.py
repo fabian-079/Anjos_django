@@ -259,18 +259,35 @@ class WompiService:
                 redirect_url = None
                 extra = payment_method.get('extra', {}) if isinstance(payment_method, dict) else {}
                 if extra:
-                    redirect_url = extra.get('async_payment_url') or extra.get('external_identifier') or extra.get('url')
+                    redirect_url = (extra.get('async_payment_url') 
+                                      or extra.get('external_identifier') 
+                                      or extra.get('url')
+                                      or extra.get('redirect_url'))
                 
                 # Fallback: buscar en transaction_data directamente
                 if not redirect_url:
-                    redirect_url = transaction_data.get('async_payment_url') or transaction_data.get('redirect_url') or transaction_data.get('payment_link')
+                    redirect_url = (transaction_data.get('async_payment_url') 
+                                    or transaction_data.get('redirect_url') 
+                                    or transaction_data.get('payment_link')
+                                    or transaction_data.get('url'))
+
+                # DEBUG: devolver respuesta cruda si no hay URL para diagnosticar
+                debug_info = None
+                if not redirect_url:
+                    debug_info = {
+                        'raw_response': str(data)[:800],
+                        'transaction_id': transaction_data.get('id'),
+                        'status': transaction_data.get('status'),
+                        'payment_method_keys': list(payment_method.keys()) if isinstance(payment_method, dict) else 'N/A',
+                        'extra_keys': list(extra.keys()) if isinstance(extra, dict) else 'N/A',
+                    }
 
                 return {
                     'success': True,
                     'transaction_id': transaction_data.get('id'),
                     'status': transaction_data.get('status'),
                     'redirect_url': redirect_url,
-                    'debug_data': str(data)[:300] if not redirect_url else None,
+                    'debug_info': debug_info,
                 }
             else:
                 # Intentar extraer mensaje de error en cualquier formato

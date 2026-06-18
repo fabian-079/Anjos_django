@@ -190,6 +190,74 @@ def order_create(request):
 
 
 @login_required
+def order_pay_pse(request, pk):
+    """
+    Iniciar pago PSE para una orden existente.
+    Se usa cuando el usuario va a 'Mis Ordenes' y quiere pagar una orden pendiente.
+    """
+    order = get_order_usecases().get_order_by_id(pk)
+    if not order:
+        messages.error(request, 'Orden no encontrada.')
+        return redirect('order_index')
+
+    if order.user_id != request.user.id and not request.user.is_admin():
+        messages.error(request, 'No tienes permiso.')
+        return redirect('order_index')
+
+    if order.status != OrderStatus.PENDING or order.payment_method != 'PSE':
+        messages.info(request, 'Esta orden no requiere pago PSE.')
+        return redirect('order_show', pk=pk)
+
+    wompi_service = WompiService()
+    if not wompi_service.is_configured():
+        messages.error(request, 'Wompi no esta configurado. Contacta al administrador.')
+        return redirect('order_show', pk=pk)
+
+    # Datos del usuario para PSE (usar datos de la orden como fallback)
+    from infrastructure.models.user_model import User
+    try:
+        user = User.objects.get(pk=order.user_id)
+        user_email = user.email or ''
+        user_name = user.name or ''
+        user_phone = user.phone or ''
+    except User.DoesNotExist:
+        user_email = ''
+        user_name = ''
+        user_phone = ''
+
+    result = wompi_service.create_pse_transaction(
+        order=order,
+        order_items=order.items,
+        bank_code='1',  # Banco que aprueba (sandbox)
+        user_type=0,
+        user_legal_id='1098800000',
+        user_legal_id_type='CC',
+        customer_email=user_email,
+        customer_name=user_name,
+        customer_phone=user_phone or order.phone,
+        bank_name='Banco que aprueba',
+    )
+
+    if result['success']:
+        if result.get('redirect_url'):
+            return redirect(result['redirect_url'])
+        else:
+            # Debug: mostrar info de la respuesta para diagnosticar
+            debug = result.get('debug_info', {})
+            messages.warning(
+                request,
+                f'Transaccion creada en Wompi (ID: {result.get("transaction_id")}) '
+                f'pero no devolvio URL de redireccion. '
+                f'Estado: {result.get("status")}. '
+                f'Detalles: {debug}'
+            )
+            return redirect('order_show', pk=pk)
+    else:
+        messages.error(request, f'No se pudo iniciar PSE: {result.get("error", "Error desconocido")}')
+        return redirect('order_show', pk=pk)
+
+
+@login_required
 def stripe_success(request):
     """
     Stripe redirige aqui despues de un pago exitoso.

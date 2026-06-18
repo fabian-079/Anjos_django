@@ -29,6 +29,7 @@ from adapters.api.order_views import (
     order_edit_form, order_update, order_delete,
     stripe_success, stripe_cancel, stripe_webhook,
     wompi_callback, wompi_webhook,
+    order_pay_pse,
 )
 from adapters.api.repair_views import (
     repair_index, repair_show, repair_create_form, repair_create,
@@ -124,6 +125,7 @@ urlpatterns = [
     path('orders/checkout/', checkout_view, name='checkout'),
     path('orders/create/', order_create, name='order_create'),
     path('orders/<int:pk>/', order_show, name='order_show'),
+    path('orders/<int:pk>/pay-pse/', order_pay_pse, name='order_pay_pse'),
     path('orders/<int:pk>/edit/', order_edit_form, name='order_edit_form'),
     path('orders/<int:pk>/update/', order_update, name='order_update'),
     path('orders/<int:pk>/delete/', order_delete, name='order_delete'),
