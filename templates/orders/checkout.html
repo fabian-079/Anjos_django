@@ -177,59 +177,40 @@
 
                 <!-- Panel: PSE -->
                 <div id="panel-PSE" style="display:none">
-                    <p class="small text-muted mb-3">Selecciona tu banco para ser redirigido al portal de pagos PSE:</p>
-                    <div class="row g-2 mb-3">
-                        <div class="col-6 col-md-3">
-                            <div class="pse-bank" onclick="selectBank(this)">
-                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
-                                <div style="font-size:.72rem">Bancolombia</div>
-                            </div>
+                    <p class="small text-muted mb-3">Completa tus datos para PSE y selecciona tu banco:</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Tipo de persona *</label>
+                            <select name="pse_user_type" class="form-select">
+                                <option value="0" selected>Persona natural</option>
+                                <option value="1">Empresa / Jurídica</option>
+                            </select>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <div class="pse-bank" onclick="selectBank(this)">
-                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
-                                <div style="font-size:.72rem">Banco de Bogotá</div>
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Tipo de documento *</label>
+                            <select name="pse_user_legal_id_type" class="form-select">
+                                <option value="CC" selected>Cédula de ciudadanía (CC)</option>
+                                <option value="CE">Cédula de extranjería (CE)</option>
+                                <option value="NIT">NIT</option>
+                                <option value="PP">Pasaporte</option>
+                            </select>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <div class="pse-bank" onclick="selectBank(this)">
-                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
-                                <div style="font-size:.72rem">Davivienda</div>
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Número de documento *</label>
+                            <input type="text" name="pse_user_legal_id" class="form-control" placeholder="1234567890" required>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <div class="pse-bank" onclick="selectBank(this)">
-                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
-                                <div style="font-size:.72rem">BBVA</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="pse-bank" onclick="selectBank(this)">
-                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
-                                <div style="font-size:.72rem">Nequi</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="pse-bank" onclick="selectBank(this)">
-                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
-                                <div style="font-size:.72rem">Banco Popular</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="pse-bank" onclick="selectBank(this)">
-                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
-                                <div style="font-size:.72rem">Colpatria</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="pse-bank" onclick="selectBank(this)">
-                                <i class="bi bi-bank d-block mb-1" style="font-size:1.2rem;color:var(--gold)"></i>
-                                <div style="font-size:.72rem">Banco de Occidente</div>
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Banco *</label>
+                            <select name="pse_bank" class="form-select" required>
+                                <option value="" disabled selected>Selecciona tu banco</option>
+                                {% for bank in pse_banks %}
+                                <option value="{{ bank.code }}">{{ bank.name }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
-                    <div class="alert alert-info py-2 small mb-0">
-                        <i class="bi bi-info-circle me-1"></i> Serás redirigido de forma segura al portal de tu banco para completar el pago.
+                    <div class="alert alert-info py-2 small mb-0 mt-3">
+                        <i class="bi bi-info-circle me-1"></i> Serás redirigido de forma segura al portal PSE de tu banco para autorizar la transferencia.
                     </div>
                 </div>
 
@@ -347,13 +328,27 @@ function formatExpiry(input) {
     input.value = v;
 }
 
-function selectBank(el, bank) {
-    document.querySelectorAll('.pse-bank').forEach(function(b) { b.classList.remove('selected'); });
-    el.classList.add('selected');
-}
-
 document.querySelector('[name=shipping_address]').addEventListener('input', function() {
     document.getElementById('billing_address_hidden').value = this.value;
+});
+
+// Validación antes de enviar el formulario
+document.getElementById('checkout-form').addEventListener('submit', function(e) {
+    var method = document.querySelector('input[name="payment_method"]:checked').value;
+    if (method === 'PSE') {
+        var bank = document.querySelector('select[name="pse_bank"]').value;
+        var doc = document.querySelector('input[name="pse_user_legal_id"]').value.trim();
+        if (!bank) {
+            e.preventDefault();
+            alert('Por favor selecciona un banco para PSE.');
+            return false;
+        }
+        if (!doc) {
+            e.preventDefault();
+            alert('Por favor ingresa tu número de documento para PSE.');
+            return false;
+        }
+    }
 });
 </script>
 {% endblock %}

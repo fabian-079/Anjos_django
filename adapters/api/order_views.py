@@ -8,6 +8,7 @@ from adapters.api.decorators import admin_required
 from infrastructure.container import get_order_usecases, get_cart_usecases
 from domain.entities.order import OrderStatus, PaymentMethod
 from application.services.stripe_checkout_service import StripeCheckoutService
+from application.services.wompi_service import WompiService
 
 
 # ---------------------------------------------------------------------------
@@ -46,12 +47,16 @@ def checkout_view(request):
     total = uc.get_cart_total(request.user.id)
     from decimal import Decimal
     tax = total * Decimal('0.19')
+    # Obtener lista de bancos PSE para el checkout
+    wompi_service = WompiService()
+    pse_banks = wompi_service.get_pse_banks()
     return render(request, 'orders/checkout.html', {
         'cart_items': items,
         'subtotal': total,
         'tax': tax,
         'total': total + tax,
         'payment_methods': PaymentMethod.CHOICES,
+        'pse_banks': pse_banks,
     })
 
 
@@ -88,8 +93,6 @@ def order_create(request):
                 order_items=order.items,
             )
             if result['success']:
-                # Guardar session_id en la orden para referencia futura
-                # (Podríamos guardarlo en BD si tuviéramos el campo; por ahora lo pasamos en URL)
                 return redirect(result['checkout_url'])
             else:
                 messages.warning(
@@ -106,7 +109,64 @@ def order_create(request):
             )
             return redirect('order_show', pk=order.id)
 
-    # Otros métodos (PSE, Efectivo): solo crea la orden
+    # Si es PSE, crear transacción en Wompi y redirigir al banco
+    if payment_method == 'PSE':
+        bank_code = request.POST.get('pse_bank', '').strip()
+        user_type = request.POST.get('pse_user_type', '0')
+        user_legal_id = request.POST.get('pse_user_legal_id', '').strip()
+        user_legal_id_type = request.POST.get('pse_user_legal_id_type', 'CC')
+
+        if not bank_code:
+            messages.error(request, 'Debes seleccionar un banco para PSE.')
+            return redirect('checkout')
+        if not user_legal_id:
+            messages.error(request, 'Debes ingresar tu número de documento para PSE.')
+            return redirect('checkout')
+
+        wompi_service = WompiService()
+        if wompi_service.is_configured():
+            result = wompi_service.create_pse_transaction(
+                order=order,
+                order_items=order.items,
+                bank_code=bank_code,
+                user_type=int(user_type),
+                user_legal_id=user_legal_id,
+                user_legal_id_type=user_legal_id_type,
+                customer_email=request.user.email or '',
+            )
+            if result['success']:
+                if result.get('redirect_url'):
+                    return redirect(result['redirect_url'])
+                else:
+                    messages.success(
+                        request,
+                        f'Orden {order.order_number} creada. Inicia la transferencia PSE desde Mis Órdenes.'
+                    )
+                    return redirect('order_show', pk=order.id)
+            else:
+                messages.warning(
+                    request,
+                    f'Orden creada, pero no se pudo iniciar PSE: {result["error"]}. '
+                    f'Puedes intentar nuevamente desde Mis Órdenes.'
+                )
+                return redirect('order_show', pk=order.id)
+        else:
+            messages.info(
+                request,
+                f'Orden {order.order_number} creada exitosamente. '
+                f'El pago PSE está en configuración; contacta al administrador para finalizar.'
+            )
+            return redirect('order_show', pk=order.id)
+
+    # Efectivo: pago contra entrega
+    if payment_method == 'EFECTIVO':
+        messages.success(
+            request,
+            f'Orden {order.order_number} creada exitosamente. '
+            f'Pagas ${{ order.total }} contra entrega al recibir tu pedido.'
+        )
+        return redirect('order_show', pk=order.id)
+
     messages.success(request, f'Orden {order.order_number} creada exitosamente.')
     return redirect('order_show', pk=order.id)
 
@@ -220,6 +280,123 @@ def stripe_webhook(request):
         if order_id:
             try:
                 get_order_usecases().update_order_status(int(order_id), OrderStatus.PROCESSING)
+            except Exception:
+                pass
+
+    return HttpResponse(status=200)
+
+
+# ---------------------------------------------------------------------------
+# Callback de Wompi (PSE y otros métodos)
+# ---------------------------------------------------------------------------
+
+@login_required
+def wompi_callback(request):
+    """
+    Wompi redirige aquí después de que el usuario completa el pago PSE.
+    El estado real se confirma vía webhook, pero aquí mostramos feedback al usuario.
+    """
+    # Wompi pasa el id de la transacción en la URL
+    transaction_id = request.GET.get('id')
+    status = request.GET.get('status', 'PENDING')
+    reference = request.GET.get('reference', '')
+
+    # Intentar extraer el order_id del reference (formato: ANJOS-ORD-{timestamp})
+    order_id = None
+    order_number = None
+    if reference.startswith('ANJOS-'):
+        order_number = reference.replace('ANJOS-', '')
+        # Buscar orden por número de orden
+        try:
+            order = get_order_usecases().get_by_order_number(order_number)
+            if order:
+                order_id = order.id
+        except Exception:
+            pass
+
+    if not order_id and transaction_id:
+        # Fallback: buscar en el servicio Wompi por transaction_id
+        wompi_service = WompiService()
+        txn = wompi_service.get_transaction_status(transaction_id)
+        if txn.get('success'):
+            ref = txn.get('reference', '')
+            if ref.startswith('ANJOS-'):
+                order_number = ref.replace('ANJOS-', '')
+                try:
+                    order = get_order_usecases().get_by_order_number(order_number)
+                    if order:
+                        order_id = order.id
+                except Exception:
+                    pass
+
+    if not order_id:
+        messages.error(request, 'No se encontró información de la orden.')
+        return redirect('order_index')
+
+    order = get_order_usecases().get_order_by_id(order_id)
+    if not order:
+        messages.error(request, 'Orden no encontrada.')
+        return redirect('order_index')
+
+    if order.user_id != request.user.id and not request.user.is_admin():
+        messages.error(request, 'No tienes permiso.')
+        return redirect('order_index')
+
+    if status.upper() in ('APPROVED', 'APROBADA', 'COMPLETED'):
+        if order.status == OrderStatus.PENDING:
+            try:
+                get_order_usecases().update_order_status(order_id, OrderStatus.PROCESSING)
+            except Exception:
+                pass
+        messages.success(request, f'¡Pago PSE confirmado! Tu orden {order.order_number} está en proceso.')
+        return render(request, 'orders/stripe_success.html', {'order': order})
+    elif status.upper() in ('DECLINED', 'REJECTED', 'DENIED'):
+        messages.error(request, f'El pago PSE de la orden {order.order_number} fue rechazado.')
+        return redirect('order_show', pk=order.id)
+    else:
+        messages.info(
+            request,
+            f'Orden {order.order_number}: tu pago PSE está siendo procesado. '
+            f'Te notificaremos cuando se confirme.'
+        )
+        return redirect('order_show', pk=order.id)
+
+
+# ---------------------------------------------------------------------------
+# Webhook de Wompi (público, no requiere login)
+# ---------------------------------------------------------------------------
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def wompi_webhook(request):
+    """
+    Recibe eventos de Wompi de forma asincrónica.
+    """
+    import json
+    try:
+        payload = json.loads(request.body)
+    except json.JSONDecodeError:
+        return HttpResponse('Invalid JSON', status=400)
+
+    event = payload.get('event', '')
+    data = payload.get('data', {})
+    transaction = data.get('transaction', {})
+
+    if event == 'transaction.updated':
+        status = transaction.get('status', '')
+        reference = transaction.get('reference', '')
+
+        if reference.startswith('ANJOS-'):
+            order_number = reference.replace('ANJOS-', '')
+            try:
+                order = get_order_usecases().get_by_order_number(order_number)
+                if order:
+                    if status in ('APPROVED', 'COMPLETED'):
+                        if order.status == OrderStatus.PENDING:
+                            get_order_usecases().update_order_status(order.id, OrderStatus.PROCESSING)
+                    elif status in ('DECLINED', 'VOIDED', 'ERROR'):
+                        if order.status == OrderStatus.PENDING:
+                            get_order_usecases().update_order_status(order.id, OrderStatus.CANCELLED)
             except Exception:
                 pass
 

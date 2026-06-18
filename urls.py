@@ -28,6 +28,7 @@ from adapters.api.order_views import (
     order_index, order_show, checkout_view, order_create,
     order_edit_form, order_update, order_delete,
     stripe_success, stripe_cancel, stripe_webhook,
+    wompi_callback, wompi_webhook,
 )
 from adapters.api.repair_views import (
     repair_index, repair_show, repair_create_form, repair_create,
@@ -131,6 +132,10 @@ urlpatterns = [
     path('orders/stripe/success/', stripe_success, name='stripe_success'),
     path('orders/stripe/cancel/', stripe_cancel, name='stripe_cancel'),
     path('webhooks/stripe/', stripe_webhook, name='stripe_webhook'),
+
+    # Wompi / PSE callbacks
+    path('orders/wompi/callback/', wompi_callback, name='wompi_callback'),
+    path('webhooks/wompi/', wompi_webhook, name='wompi_webhook'),
 
     # Repairs
     path('reparaciones/', repair_index, name='repair_index'),
