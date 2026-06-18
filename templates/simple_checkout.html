@@ -14,22 +14,18 @@
                     
                     <!-- Método de Pago -->
                     <div class="mb-4">
-                        <h6 class="mb-3">Selecciona Método de Pago</h6>
+                        <h6 class="mb-3">Método de Pago</h6>
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="payment_method" id="stripe_payment" value="stripe" checked>
-                            <label class="form-check-label" for="stripe_payment">
-                                <i class="bi bi-credit-card text-primary me-2"></i>
-                                <strong>Tarjeta de Crédito/Débito</strong>
-                                <small class="text-muted d-block">Visa, Mastercard, American Express</small>
-                            </label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="payment_method" id="simulated_payment" value="simulated">
+                            <input class="form-check-input" type="radio" name="payment_method" id="simulated_payment" value="simulated" checked>
                             <label class="form-check-label" for="simulated_payment">
                                 <i class="bi bi-cash text-success me-2"></i>
                                 <strong>Pago Simulado</strong>
                                 <small class="text-muted d-block">Modo prueba - Sin cargo real</small>
                             </label>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <small>El pago con tarjeta está temporalmente en mantenimiento. Usa la opción de pago simulado para continuar.</small>
                         </div>
                     </div>
                     
@@ -80,17 +76,11 @@
                     </div>
                     
                     {% if cart_items %}
-                    <!-- Botón de Pago con Stripe -->
-                    <button type="button" id="stripe_checkout_btn" class="btn btn-primary w-100 mb-2" style="display: none;">
-                        <i class="bi bi-credit-card me-2"></i>
-                        Pagar con Tarjeta - Stripe
-                    </button>
-                    
                     <!-- Botón de Pago Simulado -->
                     <form method="post" id="simulated_form">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-secondary w-100 mb-2">
-                            <i class="bi bi-cash me-2"></i>
+                        <button type="submit" class="btn btn-success w-100 mb-2">
+                            <i class="bi bi-check-circle me-2"></i>
                             Confirmar Pedido (Simulado)
                         </button>
                     </form>
@@ -114,66 +104,9 @@
     </div>
 </div>
 
-<!-- JavaScript para manejar métodos de pago -->
+<!-- JavaScript simplificado -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const stripeRadio = document.getElementById('stripe_payment');
-    const simulatedRadio = document.getElementById('simulated_payment');
-    const stripeBtn = document.getElementById('stripe_checkout_btn');
-    const simulatedForm = document.getElementById('simulated_form');
-    
-    function updatePaymentMethod() {
-        if (stripeRadio.checked) {
-            stripeBtn.style.display = 'block';
-            simulatedForm.style.display = 'none';
-        } else {
-            stripeBtn.style.display = 'none';
-            simulatedForm.style.display = 'block';
-        }
-    }
-    
-    // Event listeners
-    stripeRadio.addEventListener('change', updatePaymentMethod);
-    simulatedRadio.addEventListener('change', updatePaymentMethod);
-    
-    // Botón de Stripe
-    stripeBtn.addEventListener('click', function() {
-        // Mostrar loading
-        this.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Procesando...';
-        this.disabled = true;
-        
-        // Llamar a la API de Stripe
-        fetch('/api/create-stripe-checkout/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({
-                cart_items: {{ cart_items|safe }},
-                total_amount: {{ total_amount }},
-                user_email: '{{ user.email|default:"" }}'
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Redirigir a Stripe Checkout
-                window.location.href = data.checkout_url;
-            } else {
-                alert('Error: ' + data.error);
-                this.innerHTML = '<i class="bi bi-credit-card me-2"></i>Pagar con Tarjeta - Stripe';
-                this.disabled = false;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al procesar el pago con Stripe');
-            this.innerHTML = '<i class="bi bi-credit-card me-2"></i>Pagar con Tarjeta - Stripe';
-            this.disabled = false;
-        });
-    });
-    
     // Botón para limpiar carrito
     const clearCartBtn = document.getElementById('clear_cart_btn');
     if (clearCartBtn) {
@@ -200,9 +133,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
-    // Inicializar
-    updatePaymentMethod();
 });
 </script>
 
