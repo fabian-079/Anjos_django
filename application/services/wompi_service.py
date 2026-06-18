@@ -2,6 +2,7 @@
 Servicio profesional de integración con Wompi (Colombia).
 Soporta PSE, tarjetas, efectivo y otros métodos de pago colombianos.
 """
+import hashlib
 import requests
 from django.conf import settings
 
@@ -54,6 +55,15 @@ class WompiService:
         path = path.lstrip('/')
         return f"{base}/{path}"
 
+    def _build_signature(self, reference: str, amount_in_cents: int, currency: str) -> str:
+        """
+        Construir firma de integridad para Wompi.
+        Wompi requiere: SHA-256( reference + amount_in_cents + currency + integrity_key )
+        Todo como strings concatenados sin separadores.
+        """
+        message = f"{reference}{amount_in_cents}{currency}{self.integrity_key}"
+        return hashlib.sha256(message.encode('utf-8')).hexdigest()
+
     def get_pse_banks(self) -> list:
         """Obtener lista de bancos PSE desde Wompi API."""
         # Siempre usar fallback por defecto (más confiable que la API en sandbox)
@@ -104,10 +114,14 @@ class WompiService:
             total_cents = int(order.total * 100)
             reference = f"ANJOS-{order.order_number}"
             redirect_url = self.build_absolute_url('/orders/wompi/callback/')
+            currency = "COP"
+
+            # Calcular firma de integridad (obligatoria en Wompi)
+            signature = self._build_signature(reference, total_cents, currency)
 
             payload = {
                 "amount_in_cents": total_cents,
-                "currency": "COP",
+                "currency": currency,
                 "customer_email": customer_email,
                 "payment_method": {
                     "type": "PSE",
@@ -119,6 +133,7 @@ class WompiService:
                 },
                 "reference": reference,
                 "redirect_url": redirect_url,
+                "signature": signature,
             }
 
             resp = requests.post(
@@ -146,10 +161,27 @@ class WompiService:
                     'redirect_url': redirect_url,
                 }
             else:
-                error_msg = data.get('error', {}).get('reason', 'Error desconocido de Wompi')
+                # Intentar extraer mensaje de error en cualquier formato
+                error_msg = 'Error desconocido de Wompi'
+                try:
+                    if 'error' in data:
+                        err = data['error']
+                        if isinstance(err, dict):
+                            error_msg = err.get('reason') or err.get('message') or err.get('type') or str(err)
+                        else:
+                            error_msg = str(err)
+                    elif 'message' in data:
+                        error_msg = data['message']
+                    elif 'errors' in data and isinstance(data['errors'], list):
+                        error_msg = '; '.join(str(e) for e in data['errors'])
+                except Exception:
+                    pass
+
                 return {
                     'success': False,
                     'error': error_msg,
+                    'debug_status': resp.status_code,
+                    'debug_response': str(data)[:500],
                 }
 
         except requests.exceptions.Timeout:
