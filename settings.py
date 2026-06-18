@@ -127,3 +127,9 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL') # Sin email de gmail
 # API Keys
 EXCHANGE_RATE_API_KEY = os.environ.get('EXCHANGE_RATE_API_KEY', '')
 EXCHANGE_RATE_API_URL = 'https://api.exchangerate-api.com/v4/latest/USD'
+
+# Configuración para Background Tasks en Railway
+MAX_ATTEMPTS = 3
+BACKGROUND_TASK_RUN_ASYNC = True
+BACKGROUND_TASK_ASYNC_THREADS = 1
+BACKGROUND_TASK_PRIORITY_ORDERING = 'DESC'

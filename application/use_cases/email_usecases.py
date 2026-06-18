@@ -9,22 +9,35 @@ from domain.repositories.user_repository import UserRepository
 def _send_mass_email_task(subject: str, message: str, user_role: str = None):
     # Importación perezosa (dentro de la función) para evitar recursión/ciclos
     import infrastructure.container as container
+    import logging
     
-    # Obtenemos los usuarios a través del contenedor
-    user_uc = container.get_user_usecases()
-    users = user_uc.get_all_users()
+    logger = logging.getLogger(__name__)
     
-    if user_role:
-        users = [u for u in users if user_role.lower() in [r.lower() for r in u.roles]]
-    
-    messages = []
-    for user in users:
-        if user.email and user.is_active:
-            personalized_message = message.replace('{name}', user.name)
-            messages.append((subject, personalized_message, settings.DEFAULT_FROM_EMAIL, [user.email]))
-    
-    if messages:
-        send_mass_mail(messages, fail_silently=False)
+    try:
+        # Obtenemos los usuarios a través del contenedor
+        user_uc = container.get_user_usecases()
+        users = user_uc.get_all_users()
+        
+        if user_role:
+            users = [u for u in users if user_role.lower() in [r.lower() for r in u.roles]]
+        
+        logger.info(f"Preparando envío masivo a {len(users)} usuarios")
+        
+        messages = []
+        for user in users:
+            if user.email and user.is_active:
+                personalized_message = message.replace('{name}', user.name)
+                messages.append((subject, personalized_message, settings.DEFAULT_FROM_EMAIL, [user.email]))
+        
+        if messages:
+            result = send_mass_mail(messages, fail_silently=False)
+            logger.info(f"Envío masivo completado: {result} correos enviados")
+        else:
+            logger.warning("No hay usuarios válidos para enviar correos")
+            
+    except Exception as e:
+        logger.error(f"Error en tarea de envío masivo: {str(e)}")
+        raise
 
 class EmailUseCases:
     def __init__(self, user_repo: UserRepository):
