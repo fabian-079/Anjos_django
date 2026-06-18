@@ -122,30 +122,27 @@
 {% block extra_js %}
 <script>
 function buyNow() {
-    // Agregar producto al carrito primero
+    // Usar API simple de checkout
     const quantity = document.querySelector('input[name="quantity"]').value || 1;
     
-    fetch(`/products/{{ product.id }}/carrito/`, {
+    fetch('/api/simple-buy-now/', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            'X-Requested-With': 'XMLHttpRequest'
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
         },
-        body: `quantity=${quantity}`
+        body: JSON.stringify({
+            product_id: {{ product.id }},
+            quantity: parseInt(quantity)
+        })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Redirigir al checkout de pagos
-            window.location.href = '/payment/checkout/';
+            // Redirigir al checkout simple
+            window.location.href = '/checkout/';
         } else {
-            alert('Error: ' + (data.error || 'No se pudo agregar el producto'));
+            alert('Error: ' + (data.error || 'No se pudo procesar la solicitud'));
         }
     })
     .catch(error => {
