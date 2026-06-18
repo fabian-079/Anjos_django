@@ -133,6 +133,8 @@ def order_create(request):
                 user_legal_id=user_legal_id,
                 user_legal_id_type=user_legal_id_type,
                 customer_email=request.user.email or '',
+                customer_name=request.user.name or '',
+                customer_phone=request.POST.get('phone', '').strip() or (request.user.phone or ''),
             )
             if result['success']:
                 if result.get('redirect_url'):

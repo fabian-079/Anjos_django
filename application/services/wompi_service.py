@@ -36,6 +36,8 @@ class WompiService:
         self.integrity_key = getattr(settings, 'WOMPI_INTEGRITY_KEY', '')
         # Sandbox por defecto, cambiar a producción cuando esté listo
         self.base_url = "https://sandbox.wompi.co/v1"
+        # Cache de acceptance tokens (evita pedirlos en cada transacción)
+        self._acceptance_tokens = None
 
     def is_configured(self) -> bool:
         """Verificar si Wompi tiene credenciales reales configuradas."""
@@ -44,7 +46,39 @@ class WompiService:
             and self.public_key.startswith('pub_')
             and self.private_key
             and self.private_key.startswith('prv_')
+            and self.integrity_key
         )
+
+    def get_acceptance_tokens(self) -> dict:
+        """
+        Obtener los tokens de aceptacion de terminos de Wompi.
+        Wompi exige acceptance_token y accept_personal_auth en cada transaccion.
+        """
+        if self._acceptance_tokens:
+            return self._acceptance_tokens
+
+        if not self.is_configured():
+            return {'acceptance_token': '', 'accept_personal_auth': ''}
+
+        try:
+            resp = requests.get(
+                f"{self.base_url}/merchants/{self.public_key}",
+                timeout=8,
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                merchant = data.get('data', {})
+                presigned = merchant.get('presigned_acceptance', {})
+                personal = merchant.get('presigned_personal_data_auth', {})
+                self._acceptance_tokens = {
+                    'acceptance_token': presigned.get('acceptance_token', ''),
+                    'accept_personal_auth': personal.get('acceptance_token', ''),
+                }
+                return self._acceptance_tokens
+        except Exception:
+            pass
+
+        return {'acceptance_token': '', 'accept_personal_auth': ''}
 
     def build_absolute_url(self, path: str) -> str:
         """Construir URL absoluta usando BASE_URL configurado."""
@@ -99,7 +133,9 @@ class WompiService:
     def create_pse_transaction(self, order, order_items, bank_code: str,
                                 user_type: int, user_legal_id: str,
                                 user_legal_id_type: str,
-                                customer_email: str) -> dict:
+                                customer_email: str,
+                                customer_name: str = '',
+                                customer_phone: str = '') -> dict:
         """
         Crear una transacción PSE en Wompi.
         Retorna dict con: success, transaction_id, redirect_url, error
@@ -116,20 +152,48 @@ class WompiService:
             redirect_url = self.build_absolute_url('/orders/wompi/callback/')
             currency = "COP"
 
-            # Calcular firma de integridad (obligatoria en Wompi)
+            # 1. Calcular firma de integridad (obligatoria en Wompi)
             signature = self._build_signature(reference, total_cents, currency)
 
+            # 2. Obtener tokens de aceptacion (obligatorios en Wompi Colombia)
+            tokens = self.get_acceptance_tokens()
+            acceptance_token = tokens.get('acceptance_token', '')
+            accept_personal_auth = tokens.get('accept_personal_auth', '')
+
+            if not acceptance_token or not accept_personal_auth:
+                return {
+                    'success': False,
+                    'error': 'No se pudieron obtener los tokens de aceptacion de Wompi. Verifica tu llave publica.'
+                }
+
+            # 3. Descripcion truncada a max 30 caracteres (sandbox de Wompi es estricto)
+            description = f"ANJOS {order.order_number}"
+            if len(description) > 30:
+                description = description[:30]
+
+            # 4. Formatear telefono para Wompi (debe incluir prefijo +57 o 57)
+            phone = customer_phone or '573000000000'
+            phone = phone.replace('+', '').replace(' ', '').replace('-', '')
+            if not phone.startswith('57'):
+                phone = '57' + phone
+
             payload = {
+                "acceptance_token": acceptance_token,
+                "accept_personal_auth": accept_personal_auth,
                 "amount_in_cents": total_cents,
                 "currency": currency,
                 "customer_email": customer_email,
+                "customer_data": {
+                    "phone_number": phone,
+                    "full_name": customer_name or "Cliente ANJOS",
+                },
                 "payment_method": {
                     "type": "PSE",
                     "user_type": user_type,
                     "user_legal_id": user_legal_id,
                     "user_legal_id_type": user_legal_id_type,
                     "financial_institution_code": bank_code,
-                    "payment_description": f"Compra {order.order_number} en ANJOS Jewelry",
+                    "payment_description": description,
                 },
                 "reference": reference,
                 "redirect_url": redirect_url,
