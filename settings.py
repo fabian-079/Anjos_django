@@ -128,8 +128,9 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL') # Sin email de gmail
 EXCHANGE_RATE_API_KEY = os.environ.get('EXCHANGE_RATE_API_KEY', '')
 EXCHANGE_RATE_API_URL = 'https://api.exchangerate-api.com/v4/latest/USD'
 
-# Brevo API para envío por HTTP
-BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
+# Gmail API para envío por HTTP
+USE_GMAIL_API = os.environ.get('USE_GMAIL_API', 'True').lower() == 'true'
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')  # Mantener por compatibilidad
 
 # Configuración para Background Tasks en Railway
 MAX_ATTEMPTS = 3
