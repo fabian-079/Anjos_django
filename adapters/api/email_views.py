@@ -1,12 +1,30 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from adapters.api.decorators import admin_required
 from infrastructure.container import get_email_usecases
 
 @admin_required
 def email_mass_send_form(request):
     return render(request, 'emails/mass_send.html')
+
+def email_mass_send_debug(request):
+    """Vista de debug sin decoradores para probar si llega la petición"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info("🚨🚨🚨 VISTA DEBUG SIN DECORADORES LLAMADA")
+    logger.info(f"   Método: {request.method}")
+    logger.info(f"   User: {request.user}")
+    logger.info(f"   Headers: {dict(request.headers)}")
+    
+    if request.method == 'POST':
+        logger.info("   Es POST - procesando...")
+        return JsonResponse({"status": "debug_received", "method": "POST"})
+    else:
+        logger.info("   No es POST")
+        return JsonResponse({"status": "debug_received", "method": "GET"})
 
 @admin_required
 def email_mass_send(request):

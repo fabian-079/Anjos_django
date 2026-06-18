@@ -46,7 +46,7 @@ from adapters.api.notification_views import (
 )
 from adapters.api.favorite_views import favoritos_view, favorite_remove
 from adapters.api.email_views import (
-    email_mass_send_form, email_mass_send, email_new_products_notification, email_test_send
+    email_mass_send_form, email_mass_send, email_mass_send_debug, email_new_products_notification, email_test_send
 )
 from adapters.api.report_views import (
     reports_index, report_sales_pdf, report_inventory_pdf, report_users_pdf, report_preview
@@ -155,6 +155,7 @@ urlpatterns = [
     # Email masivo
     path('emails/mass-send/', email_mass_send_form, name='email_mass_send_form'),
     path('emails/mass-send/send/', email_mass_send, name='email_mass_send'),
+    path('emails/mass-send/debug/', email_mass_send_debug, name='email_mass_send_debug'),
     path('emails/new-products/', email_new_products_notification, name='email_new_products'),
     path('emails/test/', email_test_send, name='email_test_send'),
 
