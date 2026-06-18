@@ -10,3 +10,6 @@ cloudinary==1.41.0
 django-background-tasks
 urllib3==1.26.18
 charset-normalizer==3.3.0
+
+# Pasarela de pago - Stripe
+stripe==7.12.0

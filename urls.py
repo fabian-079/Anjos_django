@@ -56,7 +56,7 @@ from adapters.api.payment_views import (
     get_cart_view, clear_cart_view
 )
 from adapters.api.simple_checkout_views import (
-    simple_checkout_view, simple_payment_success_view, simple_buy_now_ajax
+    simple_checkout_view, simple_payment_success_view, simple_buy_now_ajax, create_stripe_checkout
 )
 from adapters.api.report_views import (
     reports_index, report_sales_pdf, report_inventory_pdf, report_users_pdf, report_preview
@@ -216,6 +216,7 @@ urlpatterns = [
     path('checkout/', simple_checkout_view, name='simple_checkout'),
     path('payment/success/', simple_payment_success_view, name='simple_payment_success'),
     path('api/simple-buy-now/', simple_buy_now_ajax, name='simple_buy_now_ajax'),
+    path('api/create-stripe-checkout/', create_stripe_checkout, name='create_stripe_checkout'),
     
     # Manejo de archivos locales en producción (Ruta /uploads/)
     path('uploads/<path:path>', serve, {'document_root': '/app/uploads'}),
