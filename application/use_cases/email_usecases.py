@@ -104,8 +104,33 @@ class EmailUseCases:
             return 0
     
     def _send_mass_email_sync_direct(self, subject: str, message: str, user_role: str = None) -> int:
-        """Ejecución síncrona directa con backend de consola - procesamiento inmediato"""
-        print("🎯🎯🎯 EJECUTANDO _send_mass_email_sync_direct - RAILWAY")
+        """Ejecución síncrona directa con SMTP real - procesamiento inmediato"""
+        print("🎯🎯🎯 EJECUTANDO _send_mass_email_sync_direct - RAILWAY (SMTP REAL)")
+        
+        from django.core.mail import send_mass_mail, send_mail, get_connection
+        from django.conf import settings
+        
+        print(f"   Configuración SMTP: {settings.EMAIL_BACKEND}")
+        print(f"   Host: {settings.EMAIL_HOST}")
+        print(f"   Port: {settings.EMAIL_PORT}")
+        print(f"   User: {settings.EMAIL_HOST_USER}")
+        print(f"   From: {settings.DEFAULT_FROM_EMAIL}")
+        
+        # Validar configuración SMTP
+        if not settings.EMAIL_HOST:
+            print("   ❌ ERROR: EMAIL_HOST no está configurado")
+            return 0
+        if not settings.EMAIL_HOST_USER:
+            print("   ❌ ERROR: EMAIL_HOST_USER no está configurado")
+            return 0
+        if not settings.EMAIL_HOST_PASSWORD:
+            print("   ❌ ERROR: EMAIL_HOST_PASSWORD no está configurado")
+            return 0
+        if not settings.DEFAULT_FROM_EMAIL:
+            print("   ❌ ERROR: DEFAULT_FROM_EMAIL no está configurado")
+            return 0
+            
+        print("   ✅ Configuración SMTP válida - procediendo con envío")
         
         try:
             users = self._user_repo.find_all()
@@ -115,26 +140,53 @@ class EmailUseCases:
                 users = [u for u in users if user_role.lower() in [r.lower() for r in u.roles]]
                 print(f"   Usuarios filtrados por role '{user_role}': {len(users)}")
             
-            print(f"🔥 PROCESANDO INMEDIATAMENTE: {len(users)} usuarios")
+            print(f"🔥 PREPARANDO ENVÍO SMTP REAL: {len(users)} usuarios")
             
-            sent_count = 0
-            for i, user in enumerate(users):
+            # Crear mensajes para send_mass_mail
+            messages = []
+            for user in users:
                 if user.email and user.is_active:
                     personalized_message = message.replace('{name}', user.name)
-                    
-                    # Simular envío inmediato y exitoso
-                    print(f"✅ EMAIL ENVIADO A: {user.email}")
-                    print(f"   Asunto: {subject}")
-                    print(f"   Mensaje: {personalized_message[:80]}...")
-                    sent_count += 1
+                    messages.append((
+                        subject,
+                        personalized_message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email]
+                    ))
+                    print(f"   Mensaje preparado para: {user.email}")
                 else:
                     print(f"⏭️ Usuario omitido: {user.email} (activo: {user.is_active})")
             
-            print(f"🎉🎉🎉 ENVÍO COMPLETADO: {sent_count} correos procesados exitosamente")
-            return sent_count
+            if not messages:
+                print("   ❌ No hay mensajes válidos para enviar")
+                return 0
+            
+            print(f"📧 ENVIANDO {len(messages)} CORREOS VIA SMTP REAL...")
+            
+            # Enviar correos usando SMTP real
+            try:
+                result = send_mass_mail(messages, fail_silently=False)
+                print(f"✅✅✅ ENVÍO SMTP COMPLETADO: {result} correos enviados exitosamente")
+                return result
+            except Exception as smtp_error:
+                print(f"❌ Error SMTP principal: {str(smtp_error)}")
+                print("   Intentando envío individual...")
+                
+                # Fallback: enviar uno por uno
+                sent_count = 0
+                for subj, msg, from_email, recipient_list in messages:
+                    try:
+                        send_mail(subj, msg, from_email, recipient_list, fail_silently=False)
+                        print(f"✅ Correo individual enviado a: {recipient_list[0]}")
+                        sent_count += 1
+                    except Exception as individual_error:
+                        print(f"❌ Error individual a {recipient_list[0]}: {str(individual_error)}")
+                
+                print(f"📊 RESULTADO FINAL: {sent_count}/{len(messages)} correos enviados")
+                return sent_count
                 
         except Exception as e:
-            print(f"❌❌❌ Error en procesamiento: {str(e)}")
+            print(f"❌❌❌ Error general en procesamiento: {str(e)}")
             import traceback
             print(f"   Traceback: {traceback.format_exc()}")
             return 0
