@@ -45,9 +45,31 @@
                 <span class="badge rounded-pill px-3" style="background:#f5f5f5;color:#555">{{ order.status|status_es }}</span>
             </div>
             <div class="d-flex justify-content-between mb-2 small">
-                <span class="text-muted">Método de pago</span>
+                <span class="text-muted">Metodo de pago</span>
                 <span>{{ order.payment_method }}</span>
             </div>
+            {% if order.status == 'PENDING' and order.payment_method == 'PSE' %}
+            <div class="alert alert-warning py-2 small mb-2">
+                <i class="bi bi-clock-history me-1"></i> Pago PSE pendiente. Completa la transferencia para procesar tu orden.
+            </div>
+            <a href="{% url 'checkout' %}" class="btn btn-dark w-100 btn-sm mb-2">
+                <i class="bi bi-bank me-1"></i> Intentar pago PSE nuevamente
+            </a>
+            {% endif %}
+            {% if user.is_admin and order.status == 'PENDING' %}
+            <form method="post" action="{% url 'order_update' pk=order.id %}" class="mb-0">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="PROCESSING">
+                <input type="hidden" name="shipping_address" value="{{ order.shipping_address }}">
+                <input type="hidden" name="billing_address" value="{{ order.billing_address }}">
+                <input type="hidden" name="phone" value="{{ order.phone }}">
+                <input type="hidden" name="payment_method" value="{{ order.payment_method }}">
+                <input type="hidden" name="notes" value="{{ order.notes|default:'' }}">
+                <button type="submit" class="btn btn-success w-100 btn-sm">
+                    <i class="bi bi-check-circle me-1"></i> Simular pago aprobado (admin)
+                </button>
+            </form>
+            {% endif %}
             <hr class="my-2">
             <div class="d-flex justify-content-between mb-1 small">
                 <span class="text-muted">Subtotal</span><span>${{ order.subtotal|floatformat:0 }}</span>
