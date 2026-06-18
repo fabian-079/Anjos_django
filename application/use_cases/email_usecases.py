@@ -88,9 +88,46 @@ class EmailUseCases:
             return False
 
     def send_mass_promotional_email(self, subject: str, message: str, user_role: str = None) -> int:
-        # Dispara la tarea asíncrona sin pasar el objeto 'self' de la clase
-        _send_mass_email_task(subject, message, user_role)
-        return 0
+        # En Railway ejecutar síncronamente para evitar problemas con background tasks
+        import os
+        if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_SERVICE_NAME'):
+            # Ejecución síncrona en Railway
+            return self._send_mass_email_sync(subject, message, user_role)
+        else:
+            # Ejecución asíncrona en desarrollo local
+            _send_mass_email_task(subject, message, user_role)
+            return 0
+    
+    def _send_mass_email_sync(self, subject: str, message: str, user_role: str = None) -> int:
+        """Versión síncrona para Railway"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        try:
+            users = self._user_repo.find_all()
+            
+            if user_role:
+                users = [u for u in users if user_role.lower() in [r.lower() for r in u.roles]]
+            
+            logger.info(f"Preparando envío masivo síncrono a {len(users)} usuarios")
+            
+            messages = []
+            for user in users:
+                if user.email and user.is_active:
+                    personalized_message = message.replace('{name}', user.name)
+                    messages.append((subject, personalized_message, settings.DEFAULT_FROM_EMAIL, [user.email]))
+            
+            if messages:
+                result = send_mass_mail(messages, fail_silently=False)
+                logger.info(f"Envío masivo síncrono completado: {result} correos enviados")
+                return result
+            else:
+                logger.warning("No hay usuarios válidos para enviar correos")
+                return 0
+                
+        except Exception as e:
+            logger.error(f"Error en envío masivo síncrono: {str(e)}")
+            return 0
 
     def send_new_products_notification(self, product_names: List[str]) -> int:
         users = [u for u in self._user_repo.find_all() if 'cliente' in [r.lower() for r in u.roles] and u.is_active]
