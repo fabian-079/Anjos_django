@@ -1,4 +1,3 @@
-import stripe
 import requests
 import json
 from datetime import datetime
@@ -9,10 +8,19 @@ from domain.payment import (
     PaymentMethod, PaymentStatus, Currency
 )
 
+# Importación condicional de Stripe para evitar errores si no está instalado
+try:
+    import stripe
+    STRIPE_AVAILABLE = True
+except ImportError:
+    STRIPE_AVAILABLE = False
+    stripe = None
+
 class PaymentService:
     def __init__(self):
-        # Configurar Stripe
-        stripe.api_key = getattr(settings, 'STRIPE_SECRET_KEY', None)
+        # Configurar Stripe solo si está disponible
+        if STRIPE_AVAILABLE:
+            stripe.api_key = getattr(settings, 'STRIPE_SECRET_KEY', None)
         
         # Configurar PayPal
         self.paypal_client_id = getattr(settings, 'PAYPAL_CLIENT_ID', None)
@@ -43,6 +51,13 @@ class PaymentService:
     
     def _create_stripe_payment(self, request: PaymentRequest) -> PaymentResponse:
         """Crear pago con Stripe"""
+        if not STRIPE_AVAILABLE:
+            return PaymentResponse(
+                payment_id="",
+                status=PaymentStatus.FAILED,
+                message="Stripe no está disponible. Instala las dependencias necesarias."
+            )
+        
         try:
             # Crear Checkout Session de Stripe
             checkout_session = stripe.checkout.Session.create(

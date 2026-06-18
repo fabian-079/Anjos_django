@@ -189,25 +189,25 @@ urlpatterns = [
     path('api/shipping/', api_calculate_shipping, name='api_calculate_shipping'),
     path('api/weather/', api_weather_info, name='api_weather_info'),
 
-    # Pasarela de Pagos - Temporalmente deshabilitado para depurar
-    # path('payment/methods/', payment_methods_view, name='payment_methods'),
-    # path('payment/checkout/', payment_checkout_view, name='payment_checkout'),
-    # path('payment/create/', create_payment, name='payment_create'),
-    # path('payment/success/', payment_success_view, name='payment_success'),
-    # path('payment/cancel/', payment_cancel_view, name='payment_cancel'),
-    # path('payment/pending/', payment_pending_view, name='payment_pending'),
-    # path('payment/history/', payment_history_view, name='payment_history'),
-    # path('payment/admin/', payment_admin_view, name='payment_admin'),
+    # Pasarela de Pagos
+    path('payment/methods/', payment_methods_view, name='payment_methods'),
+    path('payment/checkout/', payment_checkout_view, name='payment_checkout'),
+    path('payment/create/', create_payment, name='payment_create'),
+    path('payment/success/', payment_success_view, name='payment_success'),
+    path('payment/cancel/', payment_cancel_view, name='payment_cancel'),
+    path('payment/pending/', payment_pending_view, name='payment_pending'),
+    path('payment/history/', payment_history_view, name='payment_history'),
+    path('payment/admin/', payment_admin_view, name='payment_admin'),
     
-    # Carrito API - Temporalmente deshabilitado
-    # path('api/cart/add/', add_to_cart_view, name='add_to_cart_api'),
-    # path('api/cart/', get_cart_view, name='get_cart'),
-    # path('api/cart/clear/', clear_cart_view, name='clear_cart'),
+    # Carrito API
+    path('api/cart/add/', add_to_cart_view, name='add_to_cart_api'),
+    path('api/cart/', get_cart_view, name='get_cart'),
+    path('api/cart/clear/', clear_cart_view, name='clear_cart'),
     
-    # Webhooks de pagos - Temporalmente deshabilitado
-    # path('webhook/stripe/', payment_webhook_stripe, name='payment_webhook_stripe'),
-    # path('webhook/paypal/', payment_webhook_paypal, name='payment_webhook_paypal'),
-    # path('webhook/wompi/', payment_webhook_wompi, name='payment_webhook_wompi'),
+    # Webhooks de pagos
+    path('webhook/stripe/', payment_webhook_stripe, name='payment_webhook_stripe'),
+    path('webhook/paypal/', payment_webhook_paypal, name='payment_webhook_paypal'),
+    path('webhook/wompi/', payment_webhook_wompi, name='payment_webhook_wompi'),
     
     # Manejo de archivos locales en producción (Ruta /uploads/)
     path('uploads/<path:path>', serve, {'document_root': '/app/uploads'}),
