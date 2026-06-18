@@ -125,6 +125,14 @@ def order_create(request):
 
         wompi_service = WompiService()
         if wompi_service.is_configured():
+            # Obtener nombre del banco para detectar bancos de prueba en sandbox
+            pse_banks = wompi_service.get_pse_banks()
+            bank_name = ''
+            for b in pse_banks:
+                if str(b.get('code')) == bank_code:
+                    bank_name = b.get('name', '')
+                    break
+
             result = wompi_service.create_pse_transaction(
                 order=order,
                 order_items=order.items,
@@ -135,6 +143,7 @@ def order_create(request):
                 customer_email=request.user.email or '',
                 customer_name=request.user.name or '',
                 customer_phone=request.POST.get('phone', '').strip() or (request.user.phone or ''),
+                bank_name=bank_name,
             )
             if result['success']:
                 if result.get('redirect_url'):

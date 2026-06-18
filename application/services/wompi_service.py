@@ -130,12 +130,30 @@ class WompiService:
 
         return fallback
 
+    def _get_test_bank_code(self, bank_code: str, bank_name: str = '') -> str:
+        """
+        Wompi sandbox usa codigos especiales para PSE:
+        - "1" = Banco que aprueba
+        - "2" = Banco que declina
+        - "3" = Banco que simula error
+        Si el banco seleccionado es uno de prueba, devolvemos el codigo especial.
+        """
+        name_lower = (bank_name or '').lower()
+        if 'aprueba' in name_lower:
+            return '1'
+        if 'declina' in name_lower or 'rechaza' in name_lower:
+            return '2'
+        if 'error' in name_lower:
+            return '3'
+        return bank_code
+
     def create_pse_transaction(self, order, order_items, bank_code: str,
                                 user_type: int, user_legal_id: str,
                                 user_legal_id_type: str,
                                 customer_email: str,
                                 customer_name: str = '',
-                                customer_phone: str = '') -> dict:
+                                customer_phone: str = '',
+                                bank_name: str = '') -> dict:
         """
         Crear una transacción PSE en Wompi.
         Retorna dict con: success, transaction_id, redirect_url, error
@@ -151,6 +169,9 @@ class WompiService:
             reference = f"ANJOS-{order.order_number}"
             redirect_url = self.build_absolute_url('/orders/wompi/callback/')
             currency = "COP"
+
+            # En sandbox, usar codigos de prueba especiales de Wompi
+            actual_bank_code = self._get_test_bank_code(bank_code, bank_name)
 
             # 1. Calcular firma de integridad (obligatoria en Wompi)
             signature = self._build_signature(reference, total_cents, currency)
@@ -192,7 +213,7 @@ class WompiService:
                     "user_type": user_type,
                     "user_legal_id": user_legal_id,
                     "user_legal_id_type": user_legal_id_type,
-                    "financial_institution_code": bank_code,
+                    "financial_institution_code": actual_bank_code,
                     "payment_description": description,
                 },
                 "reference": reference,
@@ -215,14 +236,23 @@ class WompiService:
             if resp.status_code in (200, 201):
                 transaction_data = data.get('data', {})
                 payment_method = transaction_data.get('payment_method', {})
-                extra = payment_method.get('extra', {})
-                redirect_url = extra.get('async_payment_url') or extra.get('external_identifier')
+
+                # Buscar URL de redireccion en multiples lugares posibles
+                redirect_url = None
+                extra = payment_method.get('extra', {}) if isinstance(payment_method, dict) else {}
+                if extra:
+                    redirect_url = extra.get('async_payment_url') or extra.get('external_identifier') or extra.get('url')
+                
+                # Fallback: buscar en transaction_data directamente
+                if not redirect_url:
+                    redirect_url = transaction_data.get('async_payment_url') or transaction_data.get('redirect_url') or transaction_data.get('payment_link')
 
                 return {
                     'success': True,
                     'transaction_id': transaction_data.get('id'),
                     'status': transaction_data.get('status'),
                     'redirect_url': redirect_url,
+                    'debug_data': str(data)[:300] if not redirect_url else None,
                 }
             else:
                 # Intentar extraer mensaje de error en cualquier formato
