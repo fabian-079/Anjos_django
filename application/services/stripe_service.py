@@ -30,6 +30,12 @@ class StripeService:
                     'quantity': item['quantity'],
                 })
             
+            # Asegurar URLs absolutas y válidas
+            if not success_url.startswith('http'):
+                success_url = f'https://anjosdjango-production.up.railway.app{success_url}'
+            if not cancel_url.startswith('http'):
+                cancel_url = f'https://anjosdjango-production.up.railway.app{cancel_url}'
+            
             # Crear la sesión de checkout
             session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
