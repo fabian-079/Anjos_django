@@ -132,6 +132,7 @@ EXCHANGE_RATE_API_URL = 'https://api.exchangerate-api.com/v4/latest/USD'
 USE_GMAIL_API = os.environ.get('USE_GMAIL_API', 'True').lower() == 'true'
 BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')  # Mantener por compatibilidad
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
+SENDGRID_FROM_EMAIL = os.environ.get('SENDGRID_FROM_EMAIL', 'anjoscorreos7@gmail.com')
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 
 # Configuración para Background Tasks en Railway

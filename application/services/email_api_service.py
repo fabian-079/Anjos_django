@@ -68,13 +68,16 @@ class EmailAPIService:
                 'Content-Type': 'application/json'
             }
             
+            # Usar email verificado de SendGrid o el email configurado
+            from_email = getattr(settings, 'SENDGRID_FROM_EMAIL', settings.DEFAULT_FROM_EMAIL)
+            
             data = {
                 "personalizations": [{
                     "to": [{"email": to_email}],
                     "subject": subject
                 }],
                 "from": {
-                    "email": settings.DEFAULT_FROM_EMAIL
+                    "email": from_email
                 },
                 "content": [{
                     "type": "text/plain",
