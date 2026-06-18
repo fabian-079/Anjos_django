@@ -54,15 +54,20 @@ def email_mass_send(request):
     print("   Llamando a send_mass_promotional_email...")
     
     try:
-        # Llamada directa para evitar problemas
+        # Llamada asíncrona con cola
         result = email_uc.send_mass_promotional_email(subject, message, role)
-        print(f"   ✅ Resultado: {result}")
-        messages.success(request, f'Envío masivo completado: {result} correos procesados.')
+        print(f"   ✅ Tarea agregada a cola: {result}")
+        
+        # Obtener estado de la cola
+        from application.services.email_queue_service import email_queue
+        status = email_queue.get_queue_status()
+        
+        messages.success(request, f'Envío masivo agregado a la cola. Pendientes: {status["pending"]}, Procesando: {status["processing"]}, Completados: {status["completed"]}')
     except Exception as e:
         print(f"   ❌ Error: {str(e)}")
         import traceback
         print(f"   Traceback: {traceback.format_exc()}")
-        messages.error(request, f'Error al iniciar el envío: {e}')
+        messages.error(request, f'Error al agregar a la cola: {e}')
     
     return redirect('email_mass_send_form')
 

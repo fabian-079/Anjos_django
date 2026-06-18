@@ -91,12 +91,15 @@ class EmailUseCases:
         print("🚀🚀🚀 FUNCIÓN send_mass_promotional_email LLAMADA - RAILWAY")
         print(f"   Parámetros: subject='{subject}', message_length={len(message)}, user_role='{user_role}'")
         
-        # Forzar ejecución síncrona en Railway - el worker de background tasks no está procesando
+        # Usar sistema de cola asíncrona para evitar timeouts
         import os
         if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_SERVICE_NAME'):
-            print("📍 DETECTADO ENTORNO RAILWAY - Ejecutando síncrono directo")
-            # Ejecución síncrona directa en Railway para asegurar que se procese
-            return self._send_mass_email_sync_direct(subject, message, user_role)
+            print("📍 DETECTADO ENTORNO RAILWAY - Usando cola asíncrona")
+            # Agregar a cola y retornar inmediatamente
+            from application.services.email_queue_service import email_queue
+            task_id = email_queue.add_to_queue(subject, message, user_role)
+            print(f"✅ TAREA AGREGADA A COLA: {task_id}")
+            return 0  # Retornar inmediatamente, procesamiento en background
         else:
             print("📍 ENTORNO LOCAL - Ejecutando background task")
             # Ejecución asíncrona en desarrollo local
