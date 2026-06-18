@@ -72,10 +72,16 @@
         <form method="post" action="{% url 'add_to_cart' pk=product.id %}" class="d-flex gap-2 mb-3">
             {% csrf_token %}
             <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="form-control text-center" style="width:70px">
-            <button type="submit" class="btn btn-gold flex-grow-1">
+            <button type="submit" class="btn btn-gold flex-grow-1" id="add-to-cart-btn">
                 <i class="bi bi-bag-plus me-1"></i> Agregar al pedido
             </button>
         </form>
+        
+        <!-- Botón Comprar Ahora -->
+        <button class="btn btn-primary w-100 mb-3" onclick="buyNow()">
+            <i class="bi bi-lightning-charge me-1"></i> Comprar Ahora
+        </button>
+        
         <form method="post" action="{% url 'toggle_favorite' pk=product.id %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-outline-secondary w-100">
@@ -111,4 +117,35 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function buyNow() {
+    // Agregar producto al carrito primero
+    const quantity = document.querySelector('input[name="quantity"]').value || 1;
+    
+    fetch(`/products/{{ product.id }}/carrito/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `quantity=${quantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Redirigir al checkout de pagos
+            window.location.href = '/payment/checkout/';
+        } else {
+            alert('Error: ' + (data.error || 'No se pudo agregar el producto'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al procesar la solicitud');
+    });
+}
+</script>
 {% endblock %}
