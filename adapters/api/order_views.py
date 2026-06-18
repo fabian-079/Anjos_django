@@ -50,6 +50,7 @@ def checkout_view(request):
     # Obtener lista de bancos PSE para el checkout
     wompi_service = WompiService()
     pse_banks = wompi_service.get_pse_banks()
+    wompi_status = wompi_service.get_config_status()
     return render(request, 'orders/checkout.html', {
         'cart_items': items,
         'subtotal': total,
@@ -57,6 +58,7 @@ def checkout_view(request):
         'total': total + tax,
         'payment_methods': PaymentMethod.CHOICES,
         'pse_banks': pse_banks,
+        'wompi_configured': wompi_status['configured'],
     })
 
 

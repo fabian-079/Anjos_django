@@ -3,6 +3,7 @@ Servicio profesional de integración con Wompi (Colombia).
 Soporta PSE, tarjetas, efectivo y otros métodos de pago colombianos.
 """
 import hashlib
+import os
 import requests
 from django.conf import settings
 
@@ -31,23 +32,40 @@ class WompiService:
     """Servicio de Wompi para ANJOS Jewelry."""
 
     def __init__(self):
-        self.public_key = getattr(settings, 'WOMPI_PUBLIC_KEY', '')
-        self.private_key = getattr(settings, 'WOMPI_PRIVATE_KEY', '')
-        self.integrity_key = getattr(settings, 'WOMPI_INTEGRITY_KEY', '')
+        # Leer desde settings o directamente del sistema de variables de entorno
+        self.public_key = self._get_env('WOMPI_PUBLIC_KEY')
+        self.private_key = self._get_env('WOMPI_PRIVATE_KEY')
+        self.integrity_key = self._get_env('WOMPI_INTEGRITY_KEY')
         # Sandbox por defecto, cambiar a producción cuando esté listo
         self.base_url = "https://sandbox.wompi.co/v1"
         # Cache de acceptance tokens (evita pedirlos en cada transacción)
         self._acceptance_tokens = None
 
+    @staticmethod
+    def _get_env(name: str) -> str:
+        """Leer variable de entorno desde Django settings o os.environ directamente."""
+        val = getattr(settings, name, '')
+        if not val:
+            val = os.environ.get(name, '')
+        return str(val).strip() if val else ''
+
     def is_configured(self) -> bool:
         """Verificar si Wompi tiene credenciales reales configuradas."""
         return bool(
-            self.public_key
-            and self.public_key.startswith('pub_')
-            and self.private_key
-            and self.private_key.startswith('prv_')
-            and self.integrity_key
+            self.public_key and self.private_key and self.integrity_key
         )
+
+    def get_config_status(self) -> dict:
+        """Retorna un dict con el estado de cada variable para debugging."""
+        return {
+            'public_key_present': bool(self.public_key),
+            'public_key_prefix': self.public_key[:7] + '...' if self.public_key else 'N/A',
+            'private_key_present': bool(self.private_key),
+            'private_key_prefix': self.private_key[:7] + '...' if self.private_key else 'N/A',
+            'integrity_key_present': bool(self.integrity_key),
+            'integrity_key_prefix': self.integrity_key[:15] + '...' if self.integrity_key else 'N/A',
+            'configured': self.is_configured(),
+        }
 
     def get_acceptance_tokens(self) -> dict:
         """

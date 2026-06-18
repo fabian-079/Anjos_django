@@ -177,6 +177,12 @@
 
                 <!-- Panel: PSE -->
                 <div id="panel-PSE" style="display:none">
+                    {% if not wompi_configured %}
+                    <div class="alert alert-warning py-2 small mb-3">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        <strong>PSE no configurado:</strong> Las variables de entorno de Wompi no estan disponibles. Agrega WOMPI_PUBLIC_KEY, WOMPI_PRIVATE_KEY y WOMPI_INTEGRITY_KEY en Railway y haz redeploy.
+                    </div>
+                    {% endif %}
                     <p class="small text-muted mb-3">Completa tus datos para PSE y selecciona tu banco:</p>
                     <div class="row g-3">
                         <div class="col-md-6">
