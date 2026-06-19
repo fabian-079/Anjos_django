@@ -216,11 +216,11 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Número de documento *</label>
-                            <input type="text" name="pse_user_legal_id" class="form-control" placeholder="1234567890" required>
+                            <input type="text" name="pse_user_legal_id" class="form-control" placeholder="1234567890">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Banco *</label>
-                            <select name="pse_bank" class="form-select" required>
+                            <select name="pse_bank" class="form-select">
                                 <option value="" disabled selected>Selecciona tu banco</option>
                                 {% for bank in pse_banks %}
                                 <option value="{{ bank.code }}">{{ bank.name }}</option>
