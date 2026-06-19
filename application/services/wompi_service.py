@@ -116,6 +116,29 @@ class WompiService:
         message = f"{reference}{amount_in_cents}{currency}{self.integrity_key}"
         return hashlib.sha256(message.encode('utf-8')).hexdigest()
 
+    def _generate_unique_reference(self, order_number: str) -> str:
+        """Generar un reference unico para cada transaccion (Wompi exige unicidad)."""
+        import time
+        timestamp = int(time.time() * 1000)
+        return f"ANJOS-{order_number}-{timestamp}"
+
+    @staticmethod
+    def extract_order_number_from_reference(reference: str) -> str:
+        """
+        Extraer el numero de orden del reference de Wompi.
+        Formato: ANJOS-{order_number}-{timestamp}
+        Retorna el order_number o la referencia completa sin prefijo.
+        """
+        if not reference.startswith('ANJOS-'):
+            return reference
+        # Remover prefijo ANJOS-
+        rest = reference[6:]  # Despues de "ANJOS-"
+        # Buscar el ultimo guion (separador del timestamp)
+        parts = rest.rsplit('-', 1)
+        if len(parts) == 2 and parts[1].isdigit():
+            return parts[0]
+        return rest
+
     def get_pse_banks(self) -> list:
         """Obtener lista de bancos PSE desde Wompi API."""
         # Siempre usar fallback por defecto (más confiable que la API en sandbox)
@@ -184,7 +207,7 @@ class WompiService:
 
         try:
             total_cents = int(order.total * 100)
-            reference = f"ANJOS-{order.order_number}"
+            reference = self._generate_unique_reference(order.order_number)
             redirect_url = self.build_absolute_url('/orders/wompi/callback/')
             currency = "COP"
 
@@ -292,11 +315,19 @@ class WompiService:
             else:
                 # Intentar extraer mensaje de error en cualquier formato
                 error_msg = 'Error desconocido de Wompi'
+                error_details = ''
                 try:
                     if 'error' in data:
                         err = data['error']
                         if isinstance(err, dict):
                             error_msg = err.get('reason') or err.get('message') or err.get('type') or str(err)
+                            # Wompi INPUT_VALIDATION_ERROR suele tener extra con detalles
+                            extra_err = err.get('extra', {})
+                            if extra_err:
+                                if isinstance(extra_err, dict):
+                                    error_details = '; '.join(f"{k}: {v}" for k, v in extra_err.items())
+                                else:
+                                    error_details = str(extra_err)
                         else:
                             error_msg = str(err)
                     elif 'message' in data:
@@ -309,8 +340,9 @@ class WompiService:
                 return {
                     'success': False,
                     'error': error_msg,
+                    'error_details': error_details,
                     'debug_status': resp.status_code,
-                    'debug_response': str(data)[:500],
+                    'debug_response': str(data)[:800],
                 }
 
         except requests.exceptions.Timeout:

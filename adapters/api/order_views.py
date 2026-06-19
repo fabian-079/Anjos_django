@@ -253,7 +253,13 @@ def order_pay_pse(request, pk):
             )
             return redirect('order_show', pk=pk)
     else:
-        messages.error(request, f'No se pudo iniciar PSE: {result.get("error", "Error desconocido")}')
+        error_msg = result.get('error', 'Error desconocido')
+        error_details = result.get('error_details', '')
+        debug_response = result.get('debug_response', '')
+        full_error = error_msg
+        if error_details:
+            full_error += f' | Detalles: {error_details}'
+        messages.error(request, f'No se pudo iniciar PSE: {full_error}')
         return redirect('order_show', pk=pk)
 
 
@@ -396,9 +402,9 @@ def wompi_callback(request):
     order_id = None
     order_number = None
 
-    # Metodo 1: extraer de reference (ANJOS-ORD-{timestamp})
+    # Metodo 1: extraer de reference (ANJOS-{order_number}-{timestamp})
     if reference.startswith('ANJOS-'):
-        order_number = reference.replace('ANJOS-', '')
+        order_number = WompiService.extract_order_number_from_reference(reference)
         try:
             order = get_order_usecases().get_by_order_number(order_number)
             if order:
@@ -413,7 +419,7 @@ def wompi_callback(request):
         if txn.get('success'):
             ref = txn.get('reference', '')
             if ref.startswith('ANJOS-'):
-                order_number = ref.replace('ANJOS-', '')
+                order_number = WompiService.extract_order_number_from_reference(ref)
                 try:
                     order = get_order_usecases().get_by_order_number(order_number)
                     if order:
