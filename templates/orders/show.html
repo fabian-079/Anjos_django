@@ -10,11 +10,16 @@
         </a>
         <h2 class="section-title mb-0 mt-1">Pedido {{ order.order_number }}</h2>
     </div>
-    {% if user.is_admin %}
-    <a href="{% url 'order_edit_form' pk=order.id %}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-pencil me-1"></i> Editar pedido
-    </a>
-    {% endif %}
+    <div class="d-flex gap-2">
+        <a href="{% url 'order_receipt_pdf' pk=order.id %}" class="btn btn-outline-gold btn-sm">
+            <i class="bi bi-file-earmark-pdf me-1"></i> Descargar comprobante
+        </a>
+        {% if user.is_admin %}
+        <a href="{% url 'order_edit_form' pk=order.id %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-pencil me-1"></i> Editar pedido
+        </a>
+        {% endif %}
+    </div>
 </div>
 
 <div class="row g-4">

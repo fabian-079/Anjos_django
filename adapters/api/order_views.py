@@ -5,10 +5,19 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from adapters.api.decorators import admin_required
-from infrastructure.container import get_order_usecases, get_cart_usecases
+from infrastructure.container import get_order_usecases, get_cart_usecases, get_user_usecases
 from domain.entities.order import OrderStatus, PaymentMethod
 from application.services.stripe_checkout_service import StripeCheckoutService
 from application.services.wompi_service import WompiService
+
+# PDF generation
+from io import BytesIO
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 
 
 # ---------------------------------------------------------------------------
@@ -652,3 +661,207 @@ def order_delete(request, pk):
         except Exception as e:
             messages.error(request, f'Error: {e}')
     return redirect('order_index')
+
+
+# ---------------------------------------------------------------------------
+# Comprobante / Recibo PDF de orden
+# ---------------------------------------------------------------------------
+
+_STATUS_ES = {
+    'PENDING': 'Pendiente',
+    'PROCESSING': 'En proceso',
+    'SHIPPED': 'Enviado',
+    'DELIVERED': 'Entregado',
+    'CANCELLED': 'Cancelado',
+}
+
+_PAYMENT_ES = {
+    'TARJETA': 'Tarjeta de crédito / débito',
+    'PSE': 'PSE (Transferencia bancaria)',
+    'EFECTIVO': 'Efectivo / Contra entrega',
+}
+
+
+def _status_es(value):
+    return _STATUS_ES.get(value, value)
+
+
+def _payment_es(value):
+    return _PAYMENT_ES.get(value, value)
+
+
+@login_required
+def order_receipt_pdf(request, pk):
+    """Genera y descarga el comprobante/recibo de una orden en PDF."""
+    order = get_order_usecases().get_order_by_id(pk)
+    if not order:
+        messages.error(request, 'Orden no encontrada.')
+        return redirect('order_index')
+    if not request.user.is_admin() and order.user_id != request.user.id:
+        messages.error(request, 'No tienes permiso para ver esta orden.')
+        return redirect('order_index')
+
+    user = get_user_usecases().get_user_by_id(order.user_id)
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=letter,
+        leftMargin=0.6*inch, rightMargin=0.6*inch,
+        topMargin=0.6*inch, bottomMargin=0.6*inch,
+    )
+    elements = []
+    styles = getSampleStyleSheet()
+
+    gold = colors.HexColor('#C8A951')
+    dark = colors.HexColor('#1a1a1a')
+    soft = colors.HexColor('#f9f6f0')
+
+    title_style = ParagraphStyle(
+        'T', parent=styles['Heading1'],
+        fontSize=20, textColor=gold, alignment=TA_CENTER, spaceAfter=4,
+    )
+    subtitle_style = ParagraphStyle(
+        'S', parent=styles['Normal'],
+        fontSize=9, textColor=colors.grey, alignment=TA_CENTER, spaceAfter=14,
+    )
+    section_style = ParagraphStyle(
+        'Sec', parent=styles['Heading2'],
+        fontSize=11, textColor=dark, spaceBefore=12, spaceAfter=6,
+    )
+    label_style = ParagraphStyle(
+        'Lbl', parent=styles['Normal'],
+        fontSize=9, textColor=colors.grey, spaceAfter=2,
+    )
+    value_style = ParagraphStyle(
+        'Val', parent=styles['Normal'],
+        fontSize=10, textColor=dark, spaceAfter=6,
+    )
+    right_style = ParagraphStyle(
+        'R', parent=styles['Normal'],
+        fontSize=10, textColor=dark, alignment=TA_RIGHT,
+    )
+    footer_style = ParagraphStyle(
+        'F', parent=styles['Normal'],
+        fontSize=8, textColor=colors.grey, alignment=TA_CENTER, spaceBefore=20,
+    )
+
+    # Header
+    elements.append(Paragraph('ANJOS JEWELRY', title_style))
+    elements.append(Paragraph('Comprobante de compra', subtitle_style))
+
+    # Order info block
+    order_data = [
+        [Paragraph(f'<b>N° Pedido:</b> {order.order_number}', value_style),
+         Paragraph(f'<b>Fecha:</b> {order.created_at.strftime("%d/%m/%Y %H:%M") if order.created_at else "N/A"}', right_style)],
+        [Paragraph(f'<b>Estado:</b> {_status_es(order.status)}', value_style),
+         Paragraph(f'<b>Método de pago:</b> {_payment_es(order.payment_method)}', right_style)],
+    ]
+    order_table = Table(order_data, colWidths=[doc.width/2, doc.width/2])
+    order_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (0, -1), 0),
+        ('RIGHTPADDING', (-1, 0), (-1, -1), 0),
+    ]))
+    elements.append(order_table)
+    elements.append(Spacer(1, 8))
+
+    # Client info
+    elements.append(Paragraph('Información del cliente', section_style))
+    client_name = user.name if user else 'Cliente'
+    client_email = user.email if user else ''
+    client_phone = order.phone or (user.phone if user else '')
+    client_address = order.shipping_address or (user.address if user else '')
+
+    client_data = [
+        [Paragraph('<b>Nombre:</b>', label_style), Paragraph(client_name, value_style)],
+        [Paragraph('<b>Email:</b>', label_style), Paragraph(client_email, value_style)],
+        [Paragraph('<b>Teléfono:</b>', label_style), Paragraph(str(client_phone) if client_phone else '—', value_style)],
+        [Paragraph('<b>Dirección de envío:</b>', label_style), Paragraph(str(client_address) if client_address else '—', value_style)],
+    ]
+    client_table = Table(client_data, colWidths=[doc.width*0.28, doc.width*0.72])
+    client_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+    ]))
+    elements.append(client_table)
+    elements.append(Spacer(1, 6))
+
+    # Items table
+    elements.append(Paragraph('Detalle de productos', section_style))
+
+    item_header = [
+        ['Producto', 'Ref.', 'Cant.', 'Precio unit.', 'Subtotal'],
+    ]
+    item_rows = []
+    for item in order.items:
+        item_rows.append([
+            item.product_name or '',
+            f'#{item.product_id}' if item.product_id else '—',
+            str(item.quantity),
+            f'${item.price:,.0f}',
+            f'${item.subtotal:,.0f}',
+        ])
+
+    items_data = item_header + item_rows
+    items_table = Table(items_data, colWidths=[doc.width*0.34, doc.width*0.14, doc.width*0.12, doc.width*0.20, doc.width*0.20])
+    items_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), dark),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 8),
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+        ('TOPPADDING', (0, 1), (-1, -1), 6),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, soft]),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dddddd')),
+    ]))
+    elements.append(items_table)
+    elements.append(Spacer(1, 12))
+
+    # Totals
+    totals_data = [
+        ['', '', '', 'Subtotal:', f'${order.subtotal:,.0f}'],
+        ['', '', '', 'IVA (19%):', f'${order.tax:,.0f}'],
+        ['', '', '', Paragraph('<b>Total:</b>', ParagraphStyle('Tot', parent=value_style, fontSize=11, textColor=dark, alignment=TA_RIGHT)),
+         Paragraph(f'<b>${order.total:,.0f}</b>', ParagraphStyle('TotV', parent=right_style, fontSize=11, textColor=gold))],
+    ]
+    totals_table = Table(totals_data, colWidths=[doc.width*0.34, doc.width*0.14, doc.width*0.12, doc.width*0.20, doc.width*0.20])
+    totals_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('RIGHTPADDING', (-1, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('LINEABOVE', (3, 0), (-1, 0), 0.5, colors.HexColor('#dddddd')),
+        ('LINEABOVE', (3, 2), (-1, 2), 1.5, gold),
+    ]))
+    elements.append(totals_table)
+
+    # Notes
+    if order.notes:
+        elements.append(Spacer(1, 10))
+        elements.append(Paragraph('Notas:', label_style))
+        elements.append(Paragraph(str(order.notes), value_style))
+
+    # Footer
+    elements.append(Spacer(1, 24))
+    elements.append(Paragraph(
+        'Gracias por tu compra. Para cualquier consulta escríbenos a soporte@anjos.com',
+        footer_style,
+    ))
+
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Comprobante_{order.order_number}.pdf"'
+    response.write(pdf)
+    return response
