@@ -52,7 +52,51 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Talla / Tamaño</label>
-                    <input type="text" name="size" class="form-control" value="{{ form_data.size|default:product.size|default:'' }}">
+                    <select name="size" class="form-select">
+                        <option value="" {% if not form_data.size and not product.size %}selected{% endif %}>— Seleccionar —</option>
+                        <optgroup label="Universal">
+                            <option value="Universal" {% if form_data.size == 'Universal' or product.size == 'Universal' %}selected{% endif %}>Universal / Única</option>
+                        </optgroup>
+                        <optgroup label="Tallas generales">
+                            <option value="XS" {% if form_data.size == 'XS' or product.size == 'XS' %}selected{% endif %}>XS</option>
+                            <option value="S" {% if form_data.size == 'S' or product.size == 'S' %}selected{% endif %}>S</option>
+                            <option value="M" {% if form_data.size == 'M' or product.size == 'M' %}selected{% endif %}>M</option>
+                            <option value="L" {% if form_data.size == 'L' or product.size == 'L' %}selected{% endif %}>L</option>
+                            <option value="XL" {% if form_data.size == 'XL' or product.size == 'XL' %}selected{% endif %}>XL</option>
+                        </optgroup>
+                        <optgroup label="Anillos">
+                            <option value="Talla 4" {% if form_data.size == 'Talla 4' or product.size == 'Talla 4' %}selected{% endif %}>Talla 4</option>
+                            <option value="Talla 5" {% if form_data.size == 'Talla 5' or product.size == 'Talla 5' %}selected{% endif %}>Talla 5</option>
+                            <option value="Talla 6" {% if form_data.size == 'Talla 6' or product.size == 'Talla 6' %}selected{% endif %}>Talla 6</option>
+                            <option value="Talla 7" {% if form_data.size == 'Talla 7' or product.size == 'Talla 7' %}selected{% endif %}>Talla 7</option>
+                            <option value="Talla 8" {% if form_data.size == 'Talla 8' or product.size == 'Talla 8' %}selected{% endif %}>Talla 8</option>
+                            <option value="Talla 9" {% if form_data.size == 'Talla 9' or product.size == 'Talla 9' %}selected{% endif %}>Talla 9</option>
+                            <option value="Talla 10" {% if form_data.size == 'Talla 10' or product.size == 'Talla 10' %}selected{% endif %}>Talla 10</option>
+                            <option value="Talla 11" {% if form_data.size == 'Talla 11' or product.size == 'Talla 11' %}selected{% endif %}>Talla 11</option>
+                            <option value="Talla 12" {% if form_data.size == 'Talla 12' or product.size == 'Talla 12' %}selected{% endif %}>Talla 12</option>
+                            <option value="Talla 13" {% if form_data.size == 'Talla 13' or product.size == 'Talla 13' %}selected{% endif %}>Talla 13</option>
+                            <option value="Talla 14" {% if form_data.size == 'Talla 14' or product.size == 'Talla 14' %}selected{% endif %}>Talla 14</option>
+                        </optgroup>
+                        <optgroup label="Pulseras">
+                            <option value="14 cm" {% if form_data.size == '14 cm' or product.size == '14 cm' %}selected{% endif %}>14 cm</option>
+                            <option value="15 cm" {% if form_data.size == '15 cm' or product.size == '15 cm' %}selected{% endif %}>15 cm</option>
+                            <option value="16 cm" {% if form_data.size == '16 cm' or product.size == '16 cm' %}selected{% endif %}>16 cm</option>
+                            <option value="17 cm" {% if form_data.size == '17 cm' or product.size == '17 cm' %}selected{% endif %}>17 cm</option>
+                            <option value="18 cm" {% if form_data.size == '18 cm' or product.size == '18 cm' %}selected{% endif %}>18 cm</option>
+                            <option value="19 cm" {% if form_data.size == '19 cm' or product.size == '19 cm' %}selected{% endif %}>19 cm</option>
+                            <option value="20 cm" {% if form_data.size == '20 cm' or product.size == '20 cm' %}selected{% endif %}>20 cm</option>
+                            <option value="21 cm" {% if form_data.size == '21 cm' or product.size == '21 cm' %}selected{% endif %}>21 cm</option>
+                        </optgroup>
+                        <optgroup label="Collares">
+                            <option value="40 cm" {% if form_data.size == '40 cm' or product.size == '40 cm' %}selected{% endif %}>40 cm</option>
+                            <option value="42 cm" {% if form_data.size == '42 cm' or product.size == '42 cm' %}selected{% endif %}>42 cm</option>
+                            <option value="45 cm" {% if form_data.size == '45 cm' or product.size == '45 cm' %}selected{% endif %}>45 cm</option>
+                            <option value="50 cm" {% if form_data.size == '50 cm' or product.size == '50 cm' %}selected{% endif %}>50 cm</option>
+                            <option value="55 cm" {% if form_data.size == '55 cm' or product.size == '55 cm' %}selected{% endif %}>55 cm</option>
+                            <option value="60 cm" {% if form_data.size == '60 cm' or product.size == '60 cm' %}selected{% endif %}>60 cm</option>
+                            <option value="70 cm" {% if form_data.size == '70 cm' or product.size == '70 cm' %}selected{% endif %}>70 cm</option>
+                        </optgroup>
+                    </select>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Enlace de imagen</label>

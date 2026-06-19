@@ -55,7 +55,7 @@ def customization_create(request):
         return redirect('customization_index')
     except Exception as e:
         messages.error(request, f'Error: {e}')
-        return render(request, 'personalizacion/create.html', {'form_data': dict(request.POST)})
+        return render(request, 'personalizacion/create.html', {'form_data': request.POST.dict()})
 
 
 @login_required
@@ -106,7 +106,7 @@ def customization_update(request, pk):
         return render(request, 'personalizacion/edit.html', {
             'customization': item,
             'technicians': TECHNICIANS,
-            'form_data': dict(request.POST),
+            'form_data': request.POST.dict(),
         })
     return redirect('customization_show', pk=pk)
 

@@ -654,7 +654,7 @@ def order_update(request, pk):
             'order': order,
             'status_choices': OrderStatus.CHOICES,
             'payment_methods': PaymentMethod.CHOICES,
-            'form_data': dict(request.POST),
+            'form_data': request.POST.dict(),
         })
     return redirect('order_show', pk=pk)
 

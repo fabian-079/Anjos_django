@@ -124,7 +124,7 @@ def profile_edit(request):
                 return redirect('dashboard_cliente')
             except ValueError as e:
                 messages.error(request, str(e))
-    return render(request, 'users/profile.html', {'user': user, 'form_data': dict(request.POST)})
+    return render(request, 'users/profile.html', {'user': user, 'form_data': request.POST.dict()})
 
 def _merge_guest_session(request, user):
     try:

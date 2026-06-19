@@ -56,7 +56,7 @@ def repair_create(request):
         return redirect('repair_index')
     except Exception as e:
         messages.error(request, f'Error: {e}')
-        return render(request, 'reparaciones/create.html', {'form_data': dict(request.POST)})
+        return render(request, 'reparaciones/create.html', {'form_data': request.POST.dict()})
 
 
 @admin_required
@@ -101,7 +101,7 @@ def repair_update(request, pk):
             'repair': repair,
             'status_choices': RepairStatus.CHOICES,
             'technicians': TECHNICIANS,
-            'form_data': dict(request.POST),
+            'form_data': request.POST.dict(),
         })
     return redirect('repair_show', pk=pk)
 

@@ -37,7 +37,7 @@ def user_create(request):
         messages.error(request, f'Error: {e}')
         return render(request, 'users/create.html', {
             'roles': Role.objects.filter(is_active=True),
-            'form_data': dict(request.POST),
+            'form_data': request.POST.dict(),
         })
 
 @admin_required
@@ -77,7 +77,7 @@ def user_update(request, pk):
         return render(request, 'users/edit.html', {
             'user': user,
             'roles': Role.objects.filter(is_active=True),
-            'form_data': dict(request.POST),
+            'form_data': request.POST.dict(),
         })
 
 @admin_required
