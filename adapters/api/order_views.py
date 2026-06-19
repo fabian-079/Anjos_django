@@ -242,24 +242,14 @@ def order_pay_pse(request, pk):
         if result.get('redirect_url'):
             return redirect(result['redirect_url'])
         else:
-            # Debug: mostrar info de la respuesta para diagnosticar
-            debug = result.get('debug_info', {})
             messages.warning(
                 request,
                 f'Transaccion creada en Wompi (ID: {result.get("transaction_id")}) '
-                f'pero no devolvio URL de redireccion. '
-                f'Estado: {result.get("status")}. '
-                f'Detalles: {debug}'
+                f'pero no devolvio URL de redireccion. Estado: {result.get("status")}.'
             )
             return redirect('order_show', pk=pk)
     else:
-        error_msg = result.get('error', 'Error desconocido')
-        error_details = result.get('error_details', '')
-        debug_response = result.get('debug_response', '')
-        full_error = error_msg
-        if error_details:
-            full_error += f' | Detalles: {error_details}'
-        messages.error(request, f'No se pudo iniciar PSE: {full_error}')
+        messages.error(request, f'No se pudo iniciar PSE: {result.get("error", "Error desconocido")}')
         return redirect('order_show', pk=pk)
 
 
