@@ -2,8 +2,6 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.db import transaction
-from background_task import background
 from infrastructure.container import (
     get_product_usecases, get_category_usecases,
     get_cart_usecases, get_notification_usecases,
@@ -13,18 +11,13 @@ from infrastructure.container import (
 )
 from adapters.api.decorators import admin_required
 
-# --- Tarea asíncrona (Background Task) ---
-@background(schedule=1)
-def _send_welcome_email_async(user_id):
-    """Tarea que procesa el envío de email sin bloquear el servidor web"""
+# --- Envio de email de bienvenida (sincrono pero con fail_silently) ---
+def _send_welcome_email(user_id):
+    """Envia email de bienvenida. No bloquea el registro si falla."""
     try:
-        from infrastructure.models.user_model import User
-        user = User.objects.get(id=user_id)
-        # Aquí llamamos al caso de uso que maneja el envío real
-        get_email_usecases().send_welcome_email(user)
-        print(f"Correo de bienvenida enviado exitosamente a: {user.email}")
+        get_email_usecases().send_welcome_email(user_id)
     except Exception as e:
-        print(f"Error crítico enviando email al usuario {user_id}: {e}")
+        print(f"[Email] Error enviando bienvenida al usuario {user_id}: {e}")
 
 # ─── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -74,9 +67,8 @@ def register_view(request):
                     phone=phone or None, address=address or None, role='cliente',
                 )
                 
-                # --- LLAMADA ASÍNCRONA ---
-                # Al usar on_commit, nos aseguramos de que no bloquee la respuesta HTTP
-                transaction.on_commit(lambda: _send_welcome_email_async(new_user.id))
+                # --- Enviar email de bienvenida (no bloquea el registro) ---
+                _send_welcome_email(new_user.id)
                 
                 user = authenticate(request, username=email, password=password)
                 if user:

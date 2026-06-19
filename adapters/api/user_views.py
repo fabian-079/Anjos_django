@@ -1,11 +1,9 @@
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from django.db import transaction
 from adapters.api.decorators import admin_required
 from infrastructure.container import get_user_usecases, get_email_usecases
 from infrastructure.models.user_model import Role
-# Importamos la tarea asíncrona desde donde se definió
-from .views import _send_welcome_email_async 
+from .views import _send_welcome_email 
 
 @admin_required
 def user_index(request):
@@ -33,9 +31,8 @@ def user_create(request):
             role=role,
         )
         
-        # --- LLAMADA ASÍNCRONA CORREGIDA ---
-        # Usamos on_commit para evitar el timeout del worker de Gunicorn
-        transaction.on_commit(lambda: _send_welcome_email_async(new_user.id))
+        # Enviar email de bienvenida (no bloquea la respuesta)
+        _send_welcome_email(new_user.id)
         
         messages.success(request, 'Usuario creado exitosamente.')
     except Exception as e:

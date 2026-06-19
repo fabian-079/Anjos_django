@@ -1,26 +1,30 @@
 # Configuración del Proyecto ANJOS Django
 
-## Pasarela de Pago (Stripe + Wompi PSE)
+## Pasarela de Pago (Wompi)
 
 ### Variables de Entorno Requeridas en Railway
 
 Ir a: Railway Dashboard → Variables (o Settings → Variables)
 
-#### Stripe (Tarjeta de crédito/débito)
-
-| Variable | Valor (modo prueba) | Descripción |
-|----------|---------------------|-------------|
-| `STRIPE_SECRET_KEY` | `sk_test_...` | Clave secreta de Stripe (empieza con sk_test_ o sk_live_) |
-| `STRIPE_PUBLISHABLE_KEY` | `pk_test_...` | Clave pública de Stripe (empieza con pk_test_ o pk_live_) |
-| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Clave de firma del webhook (opcional) |
-
-#### Wompi (PSE - Transferencia bancaria)
+#### Wompi (Tarjeta + PSE)
 
 | Variable | Valor (modo prueba) | Descripción |
 |----------|---------------------|-------------|
 | `WOMPI_PUBLIC_KEY` | `pub_test_...` o `pub_prod_...` | Clave pública de Wompi |
 | `WOMPI_PRIVATE_KEY` | `prv_test_...` o `prv_prod_...` | Clave privada de Wompi |
 | `WOMPI_INTEGRITY_KEY` | `test_integrity_...` | Clave de integridad para firmar transacciones |
+
+#### Email (para notificaciones de registro, ordenes, etc.)
+
+| Variable | Valor (ejemplo Gmail) | Descripción |
+|----------|----------------------|-------------|
+| `EMAIL_HOST` | `smtp.gmail.com` | Servidor SMTP |
+| `EMAIL_PORT` | `587` | Puerto SMTP (587 para TLS) |
+| `EMAIL_HOST_USER` | `tu_email@gmail.com` | Usuario SMTP |
+| `EMAIL_HOST_PASSWORD` | `tu_app_password` | Contraseña de aplicación (no la normal de Gmail) |
+| `DEFAULT_FROM_EMAIL` | `Anjos Jewelry <noreply@anjos.com>` | Remitente por defecto |
+
+> **Nota Gmail:** Para usar Gmail como SMTP, debes generar una "Contraseña de aplicación" en tu cuenta de Google (Configuración de cuenta → Seguridad → Verificación en dos pasos → Contraseñas de aplicación). No uses tu contraseña normal de Gmail.
 
 #### General
 
@@ -30,25 +34,21 @@ Ir a: Railway Dashboard → Variables (o Settings → Variables)
 
 ### Flujo de Pago Implementado
 
-#### Tarjeta (Stripe)
+#### Tarjeta (Wompi)
 1. Usuario agrega productos al carrito real (base de datos)
 2. Va a `/orders/checkout/` → ingresa dirección y método de pago
 3. Al confirmar con TARJETA:
    - Se crea la orden en BD con estado PENDING
-   - Se reduce el stock de los productos
-   - Se limpia el carrito
-   - Se crea una sesión de Stripe Checkout con los productos reales
-   - El usuario es redirigido a Stripe para pagar
+   - Se tokeniza la tarjeta con Wompi (seguro, datos no tocan nuestro servidor)
+   - Se crea la transacción con el token en Wompi
+   - Si es aprobada: la orden cambia a PROCESSING inmediatamente
+   - Si requiere 3D Secure: redirige a Wompi para autenticación
 4. Si el pago es exitoso:
-   - Stripe redirige a `/orders/stripe/success/?order_id=X`
-   - La orden cambia a PROCESSING
    - Se muestra página de confirmación profesional
-5. Si el usuario cancela:
-   - Stripe redirige a `/orders/stripe/cancel/?order_id=X`
-   - La orden queda en PENDING (puede reintentarse)
-6. Webhook asincrónico:
-   - Stripe envía eventos a `/webhooks/stripe/`
-   - Actualiza el estado de la orden independientemente del navegador del usuario
+   - La orden cambia a PROCESSING
+5. Si es rechazada:
+   - Se muestra mensaje de error al usuario
+   - La orden queda en PENDING (puede reintentarse desde Mis Órdenes)
 
 #### PSE (Wompi)
 1. Usuario agrega productos al carrito real
@@ -71,20 +71,16 @@ Ir a: Railway Dashboard → Variables (o Settings → Variables)
 ### URLs Principales
 
 - `/orders/checkout/` — Checkout con dirección de envío
-- `/orders/stripe/success/` — Éxito de pago Stripe
-- `/orders/stripe/cancel/` — Cancelación de pago Stripe
-- `/webhooks/stripe/` — Webhook de Stripe (POST)
 - `/orders/wompi/callback/` — Callback de Wompi después de PSE
 - `/webhooks/wompi/` — Webhook de Wompi (POST)
 
 ### Notas Técnicas
 
 - `BASE_URL` en settings.py se lee de `RAILWAY_PUBLIC_URL`
-- El servicio Stripe verifica que las claves empiecen con `sk_` y `pk_` para considerarse configurado
 - El servicio Wompi verifica que las claves empiecen con `pub_` y `prv_` para considerarse configurado
 - Moneda: COP (pesos colombianos)
-- Stripe Checkout solicita dirección de facturación, dirección de envío (solo Colombia) y teléfono
 - Wompi PSE usa sandbox por defecto; cambiar a producción cuando esté listo
+- El envío de emails usa Django SMTP; si no está configurado, los emails se intentan enviar pero no bloquean el flujo
 
 ### Obtener credenciales de Wompi
 
