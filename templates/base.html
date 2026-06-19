@@ -231,6 +231,8 @@
                 {% if user.is_authenticated %}
                 <div class="auth-links mb-1">
                     <a href="{% url 'dashboard_cliente' %}"><i class="bi bi-person-circle me-1"></i>Mi cuenta</a>
+                    <span class="divider">|</span>
+                    <a href="{% url 'profile_edit' %}"><i class="bi bi-pencil-square me-1"></i>Editar perfil</a>
                 </div>
                 {% else %}
                 <div class="auth-links mb-1">

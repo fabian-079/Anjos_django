@@ -90,6 +90,38 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+@login_required
+def profile_edit(request):
+    uc = get_user_usecases()
+    user = uc.get_user_by_id(request.user.id)
+    if not user:
+        messages.error(request, 'Usuario no encontrado.')
+        return redirect('dashboard_cliente')
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip() or None
+        address = request.POST.get('address', '').strip() or None
+        password = request.POST.get('password', '').strip() or None
+        if not name or not email:
+            messages.error(request, 'Nombre y email son requeridos.')
+        else:
+            try:
+                uc.update_user(
+                    user_id=request.user.id,
+                    name=name,
+                    email=email,
+                    phone=phone,
+                    address=address,
+                    is_active=request.user.is_active,
+                    password=password,
+                )
+                messages.success(request, 'Perfil actualizado exitosamente.')
+                return redirect('dashboard_cliente')
+            except ValueError as e:
+                messages.error(request, str(e))
+    return render(request, 'users/profile.html', {'user': user})
+
 def _merge_guest_session(request, user):
     try:
         guest_cart = request.session.pop('guest_cart', {})

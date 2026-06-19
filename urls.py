@@ -6,7 +6,7 @@ from django.urls import path
 from django.views.static import serve
 
 from adapters.api.views import (
-    login_view, register_view, logout_view,
+    login_view, register_view, logout_view, profile_edit,
     home_view, catalogo_view, producto_detalle_view, buscar_view,
     dashboard_admin_view, dashboard_cliente_view,
 )
@@ -78,6 +78,7 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('register/', register_view, name='register'),
     path('logout/', logout_view, name='logout'),
+    path('profile/edit/', profile_edit, name='profile_edit'),
 
     # Home & public
     path('', home_view, name='home'),
