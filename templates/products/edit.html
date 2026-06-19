@@ -28,11 +28,11 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Precio *</label>
-                    <input type="number" name="price" class="form-control" step="0.01" value="{{ form_data.price|default:product.price }}" required>
+                    <input type="number" name="price" class="form-control" step="0.01" value="{% if form_data.price %}{{ form_data.price }}{% else %}{{ product.price|stringformat:'s' }}{% endif %}" required>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Existencias</label>
-                    <input type="number" name="stock" class="form-control" value="{{ form_data.stock|default:product.stock }}">
+                    <input type="number" name="stock" class="form-control" value="{% if form_data.stock %}{{ form_data.stock }}{% else %}{{ product.stock|stringformat:'s' }}{% endif %}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Material</label>

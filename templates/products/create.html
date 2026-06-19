@@ -27,7 +27,7 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Precio *</label>
-                    <input type="number" name="price" class="form-control" step="0.01" min="0.01" required value="{{ form_data.price|default:'' }}">
+                    <input type="number" name="price" class="form-control" step="0.01" min="0.01" required value="{% if form_data.price %}{{ form_data.price }}{% else %}{% endif %}">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Existencias</label>
