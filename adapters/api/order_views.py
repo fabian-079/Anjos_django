@@ -97,28 +97,79 @@ def order_create(request):
     request.session['last_order_id'] = order.id
     request.session['last_order_number'] = order.order_number
 
-    # --- TARJETA (Stripe) ---
+    # --- TARJETA (Wompi) ---
     if payment_method == 'TARJETA':
-        stripe_service = StripeCheckoutService()
-        if stripe_service.is_configured():
-            result = stripe_service.create_checkout_session(
-                order=order,
-                order_items=order.items,
+        card_number = request.POST.get('card_number', '').strip()
+        card_holder = request.POST.get('card_holder', '').strip()
+        card_exp_month = request.POST.get('card_exp_month', '').strip()
+        card_exp_year = request.POST.get('card_exp_year', '').strip()
+        card_cvc = request.POST.get('card_cvc', '').strip()
+        card_installments = int(request.POST.get('card_installments', '1'))
+
+        if not card_number or not card_holder or not card_exp_month or not card_exp_year or not card_cvc:
+            messages.error(request, 'Debes completar todos los datos de la tarjeta.')
+            return redirect('checkout')
+
+        wompi_service = WompiService()
+        if wompi_service.is_configured():
+            # 1. Tokenizar la tarjeta
+            token_result = wompi_service.tokenize_card(
+                number=card_number,
+                cvc=card_cvc,
+                exp_month=card_exp_month,
+                exp_year=card_exp_year,
+                card_holder=card_holder,
             )
-            if result['success']:
-                return redirect(result['checkout_url'])
+            if not token_result['success']:
+                messages.error(request, f'Error con la tarjeta: {token_result["error"]}')
+                return redirect('checkout')
+
+            # 2. Crear la transaccion
+            txn_result = wompi_service.create_card_transaction(
+                order=order,
+                token_id=token_result['token_id'],
+                installments=card_installments,
+                customer_email=request.user.email or '',
+                customer_name=request.user.name or '',
+                customer_phone=request.POST.get('phone', '').strip() or (request.user.phone or ''),
+            )
+
+            if txn_result['success']:
+                # Si requiere redireccion 3D Secure
+                if txn_result.get('redirect_url'):
+                    return redirect(txn_result['redirect_url'])
+
+                # Si fue aprobada inmediatamente
+                if txn_result['status'] == 'APPROVED':
+                    try:
+                        get_order_usecases().update_order_status(order.id, OrderStatus.PROCESSING)
+                    except Exception:
+                        pass
+                    messages.success(
+                        request,
+                        f'Pago aprobado! Tu orden {order.order_number} esta en proceso.'
+                    )
+                    return render(request, 'orders/stripe_success.html', {'order': order})
+                else:
+                    # Estado pendiente o rechazado
+                    messages.info(
+                        request,
+                        f'Orden {order.order_number} creada. Estado del pago: {txn_result["status"]}. '
+                        f'Puedes verificar desde Mis Ordenes.'
+                    )
+                    return redirect('order_show', pk=order.id)
             else:
-                messages.warning(
+                messages.error(
                     request,
-                    f'Orden {order.order_number} creada, pero no se pudo iniciar Stripe: {result.get("error", "Error desconocido")}. '
-                    f'Puedes pagarla mas tarde desde Mis Ordenes.'
+                    f'No se pudo procesar el pago: {txn_result.get("error", "Error desconocido")}'
                 )
+                return redirect('order_show', pk=order.id)
         else:
             messages.info(
                 request,
                 f'Orden {order.order_number} creada. El pago con tarjeta esta en configuracion.'
             )
-        return redirect('order_show', pk=order.id)
+            return redirect('order_show', pk=order.id)
 
     # --- PSE (Wompi) ---
     if payment_method == 'PSE':

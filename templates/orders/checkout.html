@@ -138,29 +138,43 @@
                     </div>
                 </div>
 
-                <!-- Panel: Tarjeta -->
+                <!-- Panel: Tarjeta (Wompi) -->
                 <div id="panel-TARJETA">
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Número de tarjeta</label>
                             <div class="card-input">
-                                <input type="text" class="form-control" id="cardNumber" placeholder="0000  0000  0000  0000" maxlength="19" style="letter-spacing:2px;padding-right:48px" oninput="formatCard(this)">
+                                <input type="text" name="card_number" class="form-control" id="cardNumber" placeholder="0000  0000  0000  0000" maxlength="19" style="letter-spacing:2px;padding-right:48px" oninput="formatCard(this)">
                                 <span class="card-brand" id="cardBrand"><i class="bi bi-credit-card"></i></span>
                             </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Nombre en la tarjeta</label>
-                            <input type="text" class="form-control text-uppercase" placeholder="COMO APARECE EN LA TARJETA" style="letter-spacing:1px">
+                            <input type="text" name="card_holder" class="form-control text-uppercase" placeholder="COMO APARECE EN LA TARJETA" style="letter-spacing:1px">
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Vencimiento</label>
-                            <input type="text" class="form-control" placeholder="MM / AA" maxlength="7" oninput="formatExpiry(this)">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Vencimiento (MM)</label>
+                            <input type="text" name="card_exp_month" class="form-control" placeholder="MM" maxlength="2" required>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Vencimiento (AA)</label>
+                            <input type="text" name="card_exp_year" class="form-control" placeholder="AA" maxlength="2" required>
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">CVV
                                 <i class="bi bi-question-circle text-muted ms-1" title="3 dígitos al reverso de la tarjeta"></i>
                             </label>
-                            <input type="password" class="form-control" placeholder="•••" maxlength="4">
+                            <input type="password" name="card_cvc" class="form-control" placeholder="•••" maxlength="4" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Cuotas</label>
+                            <select name="card_installments" class="form-select">
+                                <option value="1" selected>1 cuota</option>
+                                <option value="3">3 cuotas</option>
+                                <option value="6">6 cuotas</option>
+                                <option value="9">9 cuotas</option>
+                                <option value="12">12 cuotas</option>
+                            </select>
                         </div>
                     </div>
                     <div class="d-flex gap-2 mt-3 align-items-center flex-wrap">
@@ -171,7 +185,6 @@
                             <span style="color:#333;margin-left:4px">Mastercard</span>
                         </span>
                         <span style="background:#007bc1;color:#fff;font-weight:800;font-size:.72rem;padding:3px 8px;border-radius:4px;letter-spacing:.5px">AMEX</span>
-                        <span style="background:#003087;color:#fff;font-weight:700;font-size:.72rem;padding:3px 8px;border-radius:4px">Pay<span style="color:#009cde">Pal</span></span>
                     </div>
                 </div>
 
@@ -352,6 +365,33 @@ document.getElementById('checkout-form').addEventListener('submit', function(e) 
         if (!doc) {
             e.preventDefault();
             alert('Por favor ingresa tu número de documento para PSE.');
+            return false;
+        }
+    }
+    if (method === 'TARJETA') {
+        var cardNum = document.querySelector('input[name="card_number"]').value.trim().replace(/\s/g, '');
+        var cardHolder = document.querySelector('input[name="card_holder"]').value.trim();
+        var cardMonth = document.querySelector('input[name="card_exp_month"]').value.trim();
+        var cardYear = document.querySelector('input[name="card_exp_year"]').value.trim();
+        var cardCvc = document.querySelector('input[name="card_cvc"]').value.trim();
+        if (!cardNum || cardNum.length < 13) {
+            e.preventDefault();
+            alert('Por favor ingresa un número de tarjeta válido.');
+            return false;
+        }
+        if (!cardHolder) {
+            e.preventDefault();
+            alert('Por favor ingresa el nombre del titular de la tarjeta.');
+            return false;
+        }
+        if (!cardMonth || !cardYear) {
+            e.preventDefault();
+            alert('Por favor ingresa la fecha de vencimiento de la tarjeta.');
+            return false;
+        }
+        if (!cardCvc) {
+            e.preventDefault();
+            alert('Por favor ingresa el código de seguridad (CVV).');
             return false;
         }
     }

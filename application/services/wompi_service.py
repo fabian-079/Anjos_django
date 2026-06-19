@@ -327,6 +327,163 @@ class WompiService:
         except Exception as e:
             return {'success': False, 'error': f'Error inesperado: {str(e)}'}
 
+    # -------------------------------------------------------------------------
+    # TARJETA DE CRÉDITO / DÉBITO (CARD)
+    # -------------------------------------------------------------------------
+
+    def tokenize_card(self, number: str, cvc: str, exp_month: str, exp_year: str,
+                      card_holder: str) -> dict:
+        """
+        Tokenizar una tarjeta de credito/debito con Wompi.
+        Retorna dict con: success, token_id, brand, last_four, error
+        """
+        if not self.is_configured():
+            return {'success': False, 'error': 'Wompi no está configurado.'}
+
+        try:
+            resp = requests.post(
+                f"{self.base_url}/tokens/cards",
+                headers={
+                    "Authorization": f"Bearer {self.public_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "number": number.replace(' ', '').replace('-', ''),
+                    "cvc": cvc,
+                    "exp_month": exp_month,
+                    "exp_year": exp_year,
+                    "card_holder": card_holder,
+                },
+                timeout=15,
+            )
+
+            data = resp.json()
+
+            if resp.status_code in (200, 201):
+                token_data = data.get('data', {})
+                return {
+                    'success': True,
+                    'token_id': token_data.get('id'),
+                    'brand': token_data.get('brand'),
+                    'last_four': token_data.get('last_four'),
+                }
+            else:
+                error_msg = 'Error al tokenizar tarjeta'
+                try:
+                    if 'error' in data:
+                        err = data['error']
+                        error_msg = err.get('reason') or err.get('message') or str(err)
+                    elif 'message' in data:
+                        error_msg = data['message']
+                except Exception:
+                    pass
+                return {'success': False, 'error': error_msg}
+
+        except requests.exceptions.Timeout:
+            return {'success': False, 'error': 'Timeout al tokenizar tarjeta'}
+        except requests.exceptions.ConnectionError:
+            return {'success': False, 'error': 'No se pudo conectar con Wompi'}
+        except Exception as e:
+            return {'success': False, 'error': f'Error inesperado: {str(e)}'}
+
+    def create_card_transaction(self, order, token_id: str, installments: int = 1,
+                                 customer_email: str = '',
+                                 customer_name: str = '',
+                                 customer_phone: str = '') -> dict:
+        """
+        Crear una transaccion con tarjeta tokenizada en Wompi.
+        Retorna dict con: success, transaction_id, status, error
+        """
+        if not self.is_configured():
+            return {'success': False, 'error': 'Wompi no está configurado.'}
+
+        try:
+            total_cents = int(order.total * 100)
+            reference = self._generate_unique_reference(order.order_number)
+            redirect_url = self.build_absolute_url('/orders/wompi/callback/')
+            currency = "COP"
+            signature = self._build_signature(reference, total_cents, currency)
+
+            tokens = self.get_acceptance_tokens()
+            acceptance_token = tokens.get('acceptance_token', '')
+            accept_personal_auth = tokens.get('accept_personal_auth', '')
+
+            if not acceptance_token or not accept_personal_auth:
+                return {'success': False, 'error': 'No se pudieron obtener los tokens de aceptacion de Wompi.'}
+
+            phone = customer_phone or '573000000000'
+            phone = phone.replace('+', '').replace(' ', '').replace('-', '')
+            if not phone.startswith('57'):
+                phone = '57' + phone
+
+            payload = {
+                "acceptance_token": acceptance_token,
+                "accept_personal_auth": accept_personal_auth,
+                "amount_in_cents": total_cents,
+                "currency": currency,
+                "customer_email": customer_email,
+                "customer_data": {
+                    "phone_number": phone,
+                    "full_name": customer_name or "Cliente ANJOS",
+                },
+                "payment_method": {
+                    "type": "CARD",
+                    "token": token_id,
+                    "installments": installments,
+                },
+                "payment_method_type": "CARD",
+                "reference": reference,
+                "redirect_url": redirect_url,
+                "signature": signature,
+            }
+
+            resp = requests.post(
+                f"{self.base_url}/transactions",
+                headers={
+                    "Authorization": f"Bearer {self.private_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=15,
+            )
+
+            data = resp.json()
+
+            if resp.status_code in (200, 201):
+                transaction_data = data.get('data', {})
+                status = transaction_data.get('status')
+
+                # Si es 3D Secure, puede requerir redireccion
+                payment_method = transaction_data.get('payment_method', {})
+                extra = payment_method.get('extra', {}) if isinstance(payment_method, dict) else {}
+                redirect_url = extra.get('async_payment_url') if isinstance(extra, dict) else None
+
+                return {
+                    'success': True,
+                    'transaction_id': transaction_data.get('id'),
+                    'status': status,
+                    'redirect_url': redirect_url,
+                    'reference': transaction_data.get('reference'),
+                }
+            else:
+                error_msg = 'Error desconocido de Wompi'
+                try:
+                    if 'error' in data:
+                        err = data['error']
+                        error_msg = err.get('reason') or err.get('message') or str(err)
+                    elif 'message' in data:
+                        error_msg = data['message']
+                except Exception:
+                    pass
+                return {'success': False, 'error': error_msg}
+
+        except requests.exceptions.Timeout:
+            return {'success': False, 'error': 'Timeout al crear transaccion con tarjeta'}
+        except requests.exceptions.ConnectionError:
+            return {'success': False, 'error': 'No se pudo conectar con Wompi'}
+        except Exception as e:
+            return {'success': False, 'error': f'Error inesperado: {str(e)}'}
+
     def get_transaction_status(self, transaction_id: str) -> dict:
         """Consultar el estado de una transacción Wompi."""
         if not self.is_configured():
