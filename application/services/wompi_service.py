@@ -416,6 +416,16 @@ class WompiService:
             if not phone.startswith('57'):
                 phone = '57' + phone
 
+            # En sandbox, forzar aprobacion automatica sin 3D Secure challenge
+            card_payment_method = {
+                "type": "CARD",
+                "token": token_id,
+                "installments": installments,
+            }
+            # Solo para sandbox: Wompi permite forzar el tipo de auth 3DS
+            if self.base_url == "https://sandbox.wompi.co/v1":
+                card_payment_method["three_ds_auth_type"] = "no_challenge_success"
+
             payload = {
                 "acceptance_token": acceptance_token,
                 "accept_personal_auth": accept_personal_auth,
@@ -426,11 +436,7 @@ class WompiService:
                     "phone_number": phone,
                     "full_name": customer_name or "Cliente ANJOS",
                 },
-                "payment_method": {
-                    "type": "CARD",
-                    "token": token_id,
-                    "installments": installments,
-                },
+                "payment_method": card_payment_method,
                 "payment_method_type": "CARD",
                 "reference": reference,
                 "redirect_url": redirect_url,

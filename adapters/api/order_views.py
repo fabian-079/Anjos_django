@@ -34,7 +34,13 @@ def order_show(request, pk):
     if not request.user.is_admin() and order.user_id != request.user.id:
         messages.error(request, 'No tienes permiso para ver esta orden.')
         return redirect('order_index')
-    return render(request, 'orders/show.html', {'order': order})
+    txn_id = request.GET.get('txn_id', '')
+    wompi_ref = request.GET.get('wompi_ref', '')
+    return render(request, 'orders/show.html', {
+        'order': order,
+        'txn_id': txn_id,
+        'wompi_ref': wompi_ref,
+    })
 
 
 @login_required
@@ -140,9 +146,8 @@ def order_create(request):
             )
 
             if txn_result['success']:
-                # Guardar transaction_id para poder consultar despues
-                request.session['last_wompi_transaction_id'] = txn_result.get('transaction_id')
-                request.session['last_wompi_reference'] = txn_result.get('reference')
+                txn_id = txn_result.get('transaction_id')
+                wompi_ref = txn_result.get('reference')
 
                 # Si requiere redireccion 3D Secure
                 if txn_result.get('redirect_url'):
@@ -166,15 +171,10 @@ def order_create(request):
                         f'El pago fue rechazado (estado: {status}). '
                         f'Intenta con otro metodo de pago o contacta a tu banco.'
                     )
-                    return redirect('order_show', pk=order.id)
+                    return redirect(f'/orders/{order.id}/?txn_id={txn_id or ""}&wompi_ref={wompi_ref or ""}')
                 else:
-                    # Estado PENDING u otro intermedio
-                    messages.info(
-                        request,
-                        f'Orden {order.order_number} creada. El pago esta siendo procesado '
-                        f'(estado: {status}). Puedes verificar desde Mis Ordenes.'
-                    )
-                    return redirect('order_show', pk=order.id)
+                    # Estado PENDING u otro intermedio - pasar txn_id en URL para poder verificar despues
+                    return redirect(f'/orders/{order.id}/?txn_id={txn_id or ""}&wompi_ref={wompi_ref or ""}')
             else:
                 messages.error(
                     request,
@@ -336,7 +336,7 @@ def order_check_card_status(request, pk):
         messages.error(request, 'No tienes permiso.')
         return redirect('order_index')
 
-    transaction_id = request.session.get('last_wompi_transaction_id')
+    transaction_id = request.GET.get('txn_id') or request.session.get('last_wompi_transaction_id')
     if not transaction_id:
         messages.info(request, 'No hay informacion de transaccion para verificar.')
         return redirect('order_show', pk=pk)
