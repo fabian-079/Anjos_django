@@ -18,6 +18,8 @@ _SPECIFIC_REPLACEMENTS = {
     '\xbe': 'ó',      # ¾ -> ó (ej: Coraz¾n -> Corazón)
     '\u2534': 'Á',    # ┴ -> Á (ej: ┴ngel -> Ángel)
     '\xdf': 'á',      # ß -> á (ej: Guardißn -> Guardián)
+    '\xcb': 'Ó',      # Ë -> Ó (ej: Ëpalo -> Ópalo)
+    '\xdd': 'í',      # Ý -> í (ej: RubÝ -> Rubí)
     '\xc3\x83\xc2\xb3': 'ó',
     '\xc3\x83\xc2\xa1': 'á',
     '\xc3\x83\xc2\xa9': 'é',
