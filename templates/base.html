@@ -392,6 +392,43 @@ document.addEventListener('DOMContentLoaded', function () {
             }).catch(function () {});
         });
     });
+
+    // --- Toggle visibilidad de contraseña ---
+    document.querySelectorAll('input[type="password"]').forEach(function (input) {
+        // Skip card CVC fields (payment, not password)
+        if (input.name === 'card_cvc') return;
+        // Skip if already wrapped in input-group
+        if (input.closest('.input-group')) return;
+
+        var parent = input.parentNode;
+        var wrapper = document.createElement('div');
+        wrapper.className = 'input-group';
+        parent.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+
+        var toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'btn btn-outline-secondary';
+        toggleBtn.innerHTML = '<i class="bi bi-eye"></i>';
+        toggleBtn.title = 'Mostrar contraseña';
+        toggleBtn.style.borderColor = '#ced4da';
+        wrapper.appendChild(toggleBtn);
+
+        toggleBtn.addEventListener('click', function () {
+            var icon = toggleBtn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+                toggleBtn.title = 'Ocultar contraseña';
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+                toggleBtn.title = 'Mostrar contraseña';
+            }
+        });
+    });
 });
 </script>
 {% block extra_js %}{% endblock %}
