@@ -70,6 +70,10 @@ if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=True)
     }
+    # Forzar UTF-8 en la conexion PostgreSQL para evitar problemas de acentos
+    if 'OPTIONS' not in DATABASES['default']:
+        DATABASES['default']['OPTIONS'] = {}
+    DATABASES['default']['OPTIONS']['client_encoding'] = 'UTF8'
 else:
     DATABASES = {
         'default': {
@@ -92,6 +96,7 @@ LANGUAGE_CODE = 'es-co'
 TIME_ZONE = 'America/Bogota'
 USE_I18N = True
 USE_TZ = True
+DEFAULT_CHARSET = 'utf-8'
 
 # --- ARCHIVOS ESTÁTICOS Y MEDIA ---
 STATIC_URL = '/static/'
