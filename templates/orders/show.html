@@ -56,7 +56,7 @@
                 <i class="bi bi-bank me-1"></i> Pagar con PSE ahora
             </a>
             {% endif %}
-            {% if user.is_admin and order.status == 'PENDING' %}
+            {% if order.status == 'PENDING' %}
             <form method="post" action="{% url 'order_update' pk=order.id %}" class="mb-0">
                 {% csrf_token %}
                 <input type="hidden" name="status" value="PROCESSING">
@@ -66,7 +66,7 @@
                 <input type="hidden" name="payment_method" value="{{ order.payment_method }}">
                 <input type="hidden" name="notes" value="{{ order.notes|default:'' }}">
                 <button type="submit" class="btn btn-success w-100 btn-sm">
-                    <i class="bi bi-check-circle me-1"></i> Simular pago aprobado (admin)
+                    <i class="bi bi-check-circle me-1"></i> Confirmar pago recibido
                 </button>
             </form>
             {% endif %}
