@@ -63,7 +63,7 @@ class EmailUseCases:
         Equipo ANJOS
         '''
         try:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=True)
             return True
         except Exception as e:
             print(f"Error enviando email: {e}")
@@ -73,16 +73,16 @@ class EmailUseCases:
         subject = f'Confirmación de Orden {order_number}'
         message = f'''
         Tu orden {order_number} ha sido recibida exitosamente.
-        
+
         Total: ${total:,.2f}
-        
+
         Te notificaremos cuando tu orden sea procesada.
-        
+
         Gracias por tu compra,
         ANJOS
         '''
         try:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user_email], fail_silently=False)
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user_email], fail_silently=True)
             return True
         except Exception:
             return False
@@ -196,7 +196,7 @@ class EmailUseCases:
             sent_count = 0
             for subj, msg, from_email, recipient_list in messages:
                 try:
-                    send_mail(subj, msg, from_email, recipient_list, fail_silently=False)
+                    send_mail(subj, msg, from_email, recipient_list, fail_silently=True)
                     print(f"✅ Correo individual enviado a: {recipient_list[0]}")
                     sent_count += 1
                 except Exception as individual_error:
@@ -339,16 +339,16 @@ class EmailUseCases:
                     # Si falla el lote, intentar enviar uno por uno
                     for subject, message, from_email, recipient_list in batch:
                         try:
-                            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+                            send_mail(subject, message, from_email, recipient_list, fail_silently=True)
                             sent_count += 1
                             logger.info(f"Correo individual enviado a {recipient_list[0]}")
                             time.sleep(0.5)  # Pausa entre correos individuales
                         except Exception as individual_error:
                             logger.error(f"Error individual a {recipient_list[0]}: {str(individual_error)}")
-            
+
             logger.info(f"Envío masivo completado: {sent_count}/{len(messages)} correos enviados")
             return sent_count
-                
+
         except Exception as e:
             logger.error(f"Error general en envío masivo síncrono: {str(e)}")
             return 0
@@ -361,19 +361,19 @@ class EmailUseCases:
             if user.email:
                 message = f'''
                 Hola {user.name},
-                
+
                 Tenemos nuevos productos en nuestro catálogo:
-                
+
                 {chr(10).join(f"• {name}" for name in product_names)}
-                
+
                 Visita nuestra tienda para conocerlos.
-                
+
                 Saludos,
                 ANJOS
                 '''
                 messages.append((subject, message, settings.DEFAULT_FROM_EMAIL, [user.email]))
         try:
-            send_mass_mail(messages, fail_silently=False)
+            send_mass_mail(messages, fail_silently=True)
             return len(messages)
         except Exception:
             return 0
@@ -382,14 +382,14 @@ class EmailUseCases:
         subject = f'Actualización de Reparación {repair_number}'
         message = f'''
         El estado de tu reparación {repair_number} ha cambiado a: {new_status}
-        
+
         Puedes ver los detalles en tu panel de cliente.
-        
+
         Saludos,
         ANJOS
         '''
         try:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user_email], fail_silently=False)
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user_email], fail_silently=True)
             return True
         except Exception:
             return False
@@ -398,16 +398,16 @@ class EmailUseCases:
         subject = f'Cotización de {item_type}'
         message = f'''
         Hemos revisado tu solicitud de {item_type}.
-        
+
         Precio estimado: ${estimated_price:,.2f}
-        
+
         Este precio es aproximado y puede variar según los materiales finales.
-        
+
         Saludos,
         ANJOS
         '''
         try:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user_email], fail_silently=False)
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user_email], fail_silently=True)
             return True
         except Exception:
             return False

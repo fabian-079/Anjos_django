@@ -11,13 +11,16 @@ from infrastructure.container import (
 )
 from adapters.api.decorators import admin_required
 
-# --- Envio de email de bienvenida (sincrono pero con fail_silently) ---
+# --- Envio de email de bienvenida (asincrono real con thread) ---
 def _send_welcome_email(user_id):
-    """Envia email de bienvenida. No bloquea el registro si falla."""
-    try:
-        get_email_usecases().send_welcome_email(user_id)
-    except Exception as e:
-        print(f"[Email] Error enviando bienvenida al usuario {user_id}: {e}")
+    """Envia email de bienvenida en un thread separado. Nunca bloquea el registro."""
+    import threading
+    def _send():
+        try:
+            get_email_usecases().send_welcome_email(user_id)
+        except Exception as e:
+            print(f"[Email] Error enviando bienvenida al usuario {user_id}: {e}")
+    threading.Thread(target=_send, daemon=True).start()
 
 # ─── Auth ─────────────────────────────────────────────────────────────────────
 
