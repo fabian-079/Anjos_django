@@ -196,7 +196,7 @@ class EmailUseCases:
             sent_count = 0
             for subj, msg, from_email, recipient_list in messages:
                 try:
-                    send_mail(subj, msg, from_email, recipient_list, fail_silently=True)
+                    send_mail(subj, msg, from_email, recipient_list, fail_silently=False)
                     print(f"✅ Correo individual enviado a: {recipient_list[0]}")
                     sent_count += 1
                 except Exception as individual_error:
@@ -339,7 +339,7 @@ class EmailUseCases:
                     # Si falla el lote, intentar enviar uno por uno
                     for subject, message, from_email, recipient_list in batch:
                         try:
-                            send_mail(subject, message, from_email, recipient_list, fail_silently=True)
+                            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
                             sent_count += 1
                             logger.info(f"Correo individual enviado a {recipient_list[0]}")
                             time.sleep(0.5)  # Pausa entre correos individuales
@@ -373,7 +373,7 @@ class EmailUseCases:
                 '''
                 messages.append((subject, message, settings.DEFAULT_FROM_EMAIL, [user.email]))
         try:
-            send_mass_mail(messages, fail_silently=True)
+            send_mass_mail(messages, fail_silently=False)
             return len(messages)
         except Exception:
             return 0
