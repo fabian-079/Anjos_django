@@ -56,7 +56,7 @@ def repair_create(request):
         return redirect('repair_index')
     except Exception as e:
         messages.error(request, f'Error: {e}')
-        return render(request, 'reparaciones/create.html')
+        return render(request, 'reparaciones/create.html', {'form_data': dict(request.POST)})
 
 
 @admin_required
@@ -96,6 +96,13 @@ def repair_update(request, pk):
         messages.success(request, 'Reparación actualizada exitosamente.')
     except Exception as e:
         messages.error(request, f'Error: {e}')
+        repair = uc.get_by_id(pk)
+        return render(request, 'reparaciones/edit.html', {
+            'repair': repair,
+            'status_choices': RepairStatus.CHOICES,
+            'technicians': TECHNICIANS,
+            'form_data': dict(request.POST),
+        })
     return redirect('repair_show', pk=pk)
 
 

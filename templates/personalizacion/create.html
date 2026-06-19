@@ -20,75 +20,75 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Tipo de pieza *</label>
                             <select name="jewelry_type" class="form-select" required>
-                                <option value="" disabled selected>Seleccionar tipo de pieza</option>
-                                <option value="Anillo">Anillo</option>
-                                <option value="Collar">Collar</option>
-                                <option value="Pulsera">Pulsera</option>
-                                <option value="Aretes">Aretes</option>
-                                <option value="Reloj">Reloj</option>
+                                <option value="" disabled {% if not form_data.jewelry_type %}selected{% endif %}>Seleccionar tipo de pieza</option>
+                                <option value="Anillo" {% if form_data.jewelry_type == 'Anillo' %}selected{% endif %}>Anillo</option>
+                                <option value="Collar" {% if form_data.jewelry_type == 'Collar' %}selected{% endif %}>Collar</option>
+                                <option value="Pulsera" {% if form_data.jewelry_type == 'Pulsera' %}selected{% endif %}>Pulsera</option>
+                                <option value="Aretes" {% if form_data.jewelry_type == 'Aretes' %}selected{% endif %}>Aretes</option>
+                                <option value="Reloj" {% if form_data.jewelry_type == 'Reloj' %}selected{% endif %}>Reloj</option>
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Material *</label>
                             <select name="material" class="form-select" required>
-                                <option value="" disabled selected>Seleccionar material</option>
-                                <option value="Oro">Oro</option>
-                                <option value="Plata">Plata</option>
-                                <option value="Platino">Platino</option>
-                                <option value="Acero Inoxidable">Acero Inoxidable</option>
-                                <option value="Oro Blanco">Oro Blanco</option>
-                                <option value="Oro Rosa">Oro Rosa</option>
-                                <option value="Oro Amarillo">Oro Amarillo</option>
-                                <option value="Titanio">Titanio</option>
-                                <option value="Otro">Otro</option>
+                                <option value="" disabled {% if not form_data.material %}selected{% endif %}>Seleccionar material</option>
+                                <option value="Oro" {% if form_data.material == 'Oro' %}selected{% endif %}>Oro</option>
+                                <option value="Plata" {% if form_data.material == 'Plata' %}selected{% endif %}>Plata</option>
+                                <option value="Platino" {% if form_data.material == 'Platino' %}selected{% endif %}>Platino</option>
+                                <option value="Acero Inoxidable" {% if form_data.material == 'Acero Inoxidable' %}selected{% endif %}>Acero Inoxidable</option>
+                                <option value="Oro Blanco" {% if form_data.material == 'Oro Blanco' %}selected{% endif %}>Oro Blanco</option>
+                                <option value="Oro Rosa" {% if form_data.material == 'Oro Rosa' %}selected{% endif %}>Oro Rosa</option>
+                                <option value="Oro Amarillo" {% if form_data.material == 'Oro Amarillo' %}selected{% endif %}>Oro Amarillo</option>
+                                <option value="Titanio" {% if form_data.material == 'Titanio' %}selected{% endif %}>Titanio</option>
+                                <option value="Otro" {% if form_data.material == 'Otro' %}selected{% endif %}>Otro</option>
                             </select>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Descripción del diseño *</label>
-                            <input type="text" name="design" class="form-control" required placeholder="Cómo imaginas tu pieza...">
+                            <input type="text" name="design" class="form-control" required placeholder="Cómo imaginas tu pieza..." value="{{ form_data.design|default:'' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Color *</label>
                             <select name="color" class="form-select" required>
-                                <option value="" disabled selected>Seleccionar color</option>
-                                <option value="Dorado">Dorado</option>
-                                <option value="Plateado">Plateado</option>
-                                <option value="Rosa">Rosa</option>
-                                <option value="Blanco">Blanco</option>
-                                <option value="Negro">Negro</option>
-                                <option value="Multicolor">Multicolor</option>
-                                <option value="Otro">Otro</option>
+                                <option value="" disabled {% if not form_data.color %}selected{% endif %}>Seleccionar color</option>
+                                <option value="Dorado" {% if form_data.color == 'Dorado' %}selected{% endif %}>Dorado</option>
+                                <option value="Plateado" {% if form_data.color == 'Plateado' %}selected{% endif %}>Plateado</option>
+                                <option value="Rosa" {% if form_data.color == 'Rosa' %}selected{% endif %}>Rosa</option>
+                                <option value="Blanco" {% if form_data.color == 'Blanco' %}selected{% endif %}>Blanco</option>
+                                <option value="Negro" {% if form_data.color == 'Negro' %}selected{% endif %}>Negro</option>
+                                <option value="Multicolor" {% if form_data.color == 'Multicolor' %}selected{% endif %}>Multicolor</option>
+                                <option value="Otro" {% if form_data.color == 'Otro' %}selected{% endif %}>Otro</option>
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Acabado *</label>
                             <select name="finish" class="form-select" required>
-                                <option value="" disabled selected>Seleccionar acabado</option>
-                                <option value="Brillante">Brillante</option>
-                                <option value="Mate">Mate</option>
-                                <option value="Satinado">Satinado</option>
-                                <option value="Pulido">Pulido</option>
-                                <option value="Texturizado">Texturizado</option>
-                                <option value="Otro">Otro</option>
+                                <option value="" disabled {% if not form_data.finish %}selected{% endif %}>Seleccionar acabado</option>
+                                <option value="Brillante" {% if form_data.finish == 'Brillante' %}selected{% endif %}>Brillante</option>
+                                <option value="Mate" {% if form_data.finish == 'Mate' %}selected{% endif %}>Mate</option>
+                                <option value="Satinado" {% if form_data.finish == 'Satinado' %}selected{% endif %}>Satinado</option>
+                                <option value="Pulido" {% if form_data.finish == 'Pulido' %}selected{% endif %}>Pulido</option>
+                                <option value="Texturizado" {% if form_data.finish == 'Texturizado' %}selected{% endif %}>Texturizado</option>
+                                <option value="Otro" {% if form_data.finish == 'Otro' %}selected{% endif %}>Otro</option>
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Piedras *</label>
                             <select name="stones" class="form-select" required>
-                                <option value="" disabled selected>Seleccionar piedras</option>
-                                <option value="Sin piedras">Sin piedras</option>
-                                <option value="Diamante">Diamante</option>
-                                <option value="Rubí">Rubí</option>
-                                <option value="Zafiro">Zafiro</option>
-                                <option value="Esmeralda">Esmeralda</option>
-                                <option value="Perla">Perla</option>
-                                <option value="Amatista">Amatista</option>
-                                <option value="Topacio">Topacio</option>
-                                <option value="Cuarzo">Cuarzo</option>
-                                <option value="Cristal">Cristal</option>
-                                <option value="Circonita">Circonita</option>
-                                <option value="Mixto">Mixto</option>
-                                <option value="Otro">Otro</option>
+                                <option value="" disabled {% if not form_data.stones %}selected{% endif %}>Seleccionar piedras</option>
+                                <option value="Sin piedras" {% if form_data.stones == 'Sin piedras' %}selected{% endif %}>Sin piedras</option>
+                                <option value="Diamante" {% if form_data.stones == 'Diamante' %}selected{% endif %}>Diamante</option>
+                                <option value="Rubí" {% if form_data.stones == 'Rubí' %}selected{% endif %}>Rubí</option>
+                                <option value="Zafiro" {% if form_data.stones == 'Zafiro' %}selected{% endif %}>Zafiro</option>
+                                <option value="Esmeralda" {% if form_data.stones == 'Esmeralda' %}selected{% endif %}>Esmeralda</option>
+                                <option value="Perla" {% if form_data.stones == 'Perla' %}selected{% endif %}>Perla</option>
+                                <option value="Amatista" {% if form_data.stones == 'Amatista' %}selected{% endif %}>Amatista</option>
+                                <option value="Topacio" {% if form_data.stones == 'Topacio' %}selected{% endif %}>Topacio</option>
+                                <option value="Cuarzo" {% if form_data.stones == 'Cuarzo' %}selected{% endif %}>Cuarzo</option>
+                                <option value="Cristal" {% if form_data.stones == 'Cristal' %}selected{% endif %}>Cristal</option>
+                                <option value="Circonita" {% if form_data.stones == 'Circonita' %}selected{% endif %}>Circonita</option>
+                                <option value="Mixto" {% if form_data.stones == 'Mixto' %}selected{% endif %}>Mixto</option>
+                                <option value="Otro" {% if form_data.stones == 'Otro' %}selected{% endif %}>Otro</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -99,11 +99,11 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Grabado</label>
-                            <input type="text" name="engraving" class="form-control" placeholder="Texto (opcional)">
+                            <input type="text" name="engraving" class="form-control" placeholder="Texto (opcional)" value="{{ form_data.engraving|default:'' }}">
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Instrucciones especiales</label>
-                            <textarea name="special_instructions" class="form-control" rows="3" placeholder="Cualquier detalle adicional que quieras compartir..."></textarea>
+                            <textarea name="special_instructions" class="form-control" rows="3" placeholder="Cualquier detalle adicional que quieras compartir...">{{ form_data.special_instructions|default:'' }}</textarea>
                         </div>
                         <div class="col-12 d-flex gap-2 mt-2">
                             <button type="submit" class="btn btn-gold flex-grow-1">Enviar solicitud de diseño</button>

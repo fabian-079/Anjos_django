@@ -15,21 +15,21 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Cliente *</label>
-                            <input type="text" name="customer_name" class="form-control" value="{{ repair.customer_name }}" required>
+                            <input type="text" name="customer_name" class="form-control" value="{{ form_data.customer_name|default:repair.customer_name }}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Teléfono *</label>
-                            <input type="text" name="phone" class="form-control" value="{{ repair.phone }}" required>
+                            <input type="text" name="phone" class="form-control" value="{{ form_data.phone|default:repair.phone }}" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Descripción *</label>
-                            <textarea name="description" class="form-control" rows="3" required>{{ repair.description }}</textarea>
+                            <textarea name="description" class="form-control" rows="3" required>{{ form_data.description|default:repair.description }}</textarea>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Estado</label>
                             <select name="status" class="form-select">
                                 {% for value, label in status_choices %}
-                                <option value="{{ value }}" {% if repair.status == value %}selected{% endif %}>{{ label }}</option>
+                                <option value="{{ value }}" {% if form_data.status == value or repair.status == value %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -37,7 +37,7 @@
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Costo estimado</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" name="estimated_cost" class="form-control" step="0.01" value="{{ repair.estimated_cost|default:'' }}">
+                                <input type="number" name="estimated_cost" class="form-control" step="0.01" value="{{ form_data.estimated_cost|default:repair.estimated_cost|default:'' }}">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -45,17 +45,17 @@
                             <select name="assigned_technician_text" class="form-select">
                                 <option value="">— Sin asignar —</option>
                                 {% for t in technicians %}
-                                <option value="{{ t }}" {% if repair.assigned_technician_text == t %}selected{% endif %}>{{ t }}</option>
+                                <option value="{{ t }}" {% if form_data.assigned_technician_text == t or repair.assigned_technician_text == t %}selected{% endif %}>{{ t }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Observaciones técnicas</label>
-                            <textarea name="technician_notes" class="form-control" rows="2">{{ repair.technician_notes|default:'' }}</textarea>
+                            <textarea name="technician_notes" class="form-control" rows="2">{{ form_data.technician_notes|default:repair.technician_notes|default:'' }}</textarea>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Notas generales</label>
-                            <textarea name="notes" class="form-control" rows="2">{{ repair.notes|default:'' }}</textarea>
+                            <textarea name="notes" class="form-control" rows="2">{{ form_data.notes|default:repair.notes|default:'' }}</textarea>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Actualizar foto</label>

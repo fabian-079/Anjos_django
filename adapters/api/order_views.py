@@ -649,6 +649,13 @@ def order_update(request, pk):
         messages.success(request, 'Orden actualizada exitosamente.')
     except Exception as e:
         messages.error(request, f'Error: {e}')
+        order = uc.get_order_by_id(pk)
+        return render(request, 'orders/edit.html', {
+            'order': order,
+            'status_choices': OrderStatus.CHOICES,
+            'payment_methods': PaymentMethod.CHOICES,
+            'form_data': dict(request.POST),
+        })
     return redirect('order_show', pk=pk)
 
 

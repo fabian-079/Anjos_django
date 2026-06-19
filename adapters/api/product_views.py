@@ -58,6 +58,7 @@ def product_create(request):
         messages.error(request, f'Error al crear producto: {e}')
         return render(request, 'products/create.html', {
             'categories': categories_uc.get_active(),
+            'form_data': dict(request.POST),
         })
 
 
@@ -109,6 +110,7 @@ def product_update(request, pk):
         return render(request, 'products/edit.html', {
             'product': product,
             'categories': categories_uc.get_active(),
+            'form_data': dict(request.POST),
         })
 
 

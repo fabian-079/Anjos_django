@@ -14,11 +14,11 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Nombre *</label>
-                            <input type="text" name="name" class="form-control" value="{{ user.name }}" required>
+                            <input type="text" name="name" class="form-control" value="{{ form_data.name|default:user.name }}" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Correo electrónico *</label>
-                            <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                            <input type="email" name="email" class="form-control" value="{{ form_data.email|default:user.email }}" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Nueva contraseña <span class="text-muted fw-normal">(dejar vacío para mantener)</span></label>
@@ -26,19 +26,19 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Teléfono</label>
-                            <input type="text" name="phone" class="form-control" value="{{ user.phone|default:'' }}">
+                            <input type="text" name="phone" class="form-control" value="{{ form_data.phone|default:user.phone|default:'' }}">
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex align-items-end h-100 pb-1">
                                 <div class="form-check">
-                                    <input type="checkbox" name="is_active" value="true" class="form-check-input" id="is_active" {% if user.is_active %}checked{% endif %}>
+                                    <input type="checkbox" name="is_active" value="true" class="form-check-input" id="is_active" {% if form_data.is_active or user.is_active %}checked{% endif %}>
                                     <label class="form-check-label" for="is_active">Usuario activo</label>
                                 </div>
                             </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Dirección</label>
-                            <input type="text" name="address" class="form-control" value="{{ user.address|default:'' }}">
+                            <input type="text" name="address" class="form-control" value="{{ form_data.address|default:user.address|default:'' }}">
                         </div>
                         <div class="col-12 d-flex gap-2 mt-2">
                             <button type="submit" class="btn btn-gold flex-grow-1">Guardar cambios</button>

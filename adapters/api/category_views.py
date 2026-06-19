@@ -31,6 +31,7 @@ def category_create(request):
         messages.success(request, 'Categoría creada exitosamente.')
     except Exception as e:
         messages.error(request, f'Error: {e}')
+        return render(request, 'categories/create.html', {'form_data': dict(request.POST)})
     return redirect('category_index')
 
 
@@ -60,6 +61,8 @@ def category_update(request, pk):
         messages.success(request, 'Categoría actualizada exitosamente.')
     except Exception as e:
         messages.error(request, f'Error: {e}')
+        category = uc.get_by_id(pk)
+        return render(request, 'categories/edit.html', {'category': category, 'form_data': dict(request.POST)})
     return redirect('category_index')
 
 

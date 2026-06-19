@@ -23,7 +23,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Descripción del diseño *</label>
-                    <input type="text" name="design" class="form-control" required value="{{ customization.design|default:'' }}">
+                    <input type="text" name="design" class="form-control" required value="{{ form_data.design|default:customization.design|default:'' }}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Material *</label>
@@ -92,11 +92,11 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Grabado</label>
-                    <input type="text" name="engraving" class="form-control" value="{{ customization.engraving|default:'' }}">
+                    <input type="text" name="engraving" class="form-control" value="{{ form_data.engraving|default:customization.engraving|default:'' }}">
                 </div>
                 <div class="col-12">
                     <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Instrucciones especiales</label>
-                    <textarea name="special_instructions" class="form-control" rows="3">{{ customization.special_instructions|default:'' }}</textarea>
+                    <textarea name="special_instructions" class="form-control" rows="3">{{ form_data.special_instructions|default:customization.special_instructions|default:'' }}</textarea>
                 </div>
                 {% if user.is_admin %}
                 <div class="col-md-6">

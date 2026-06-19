@@ -55,7 +55,7 @@ def customization_create(request):
         return redirect('customization_index')
     except Exception as e:
         messages.error(request, f'Error: {e}')
-        return render(request, 'personalizacion/create.html')
+        return render(request, 'personalizacion/create.html', {'form_data': dict(request.POST)})
 
 
 @login_required
@@ -101,6 +101,13 @@ def customization_update(request, pk):
         messages.success(request, 'Personalización actualizada exitosamente.')
     except Exception as e:
         messages.error(request, f'Error: {e}')
+        item = uc.get_by_id(pk)
+        TECHNICIANS = ['Carlos Mendoza', 'Luisa Fernández', 'Andrés Gómez', 'María Torres', 'Felipe Rojas']
+        return render(request, 'personalizacion/edit.html', {
+            'customization': item,
+            'technicians': TECHNICIANS,
+            'form_data': dict(request.POST),
+        })
     return redirect('customization_show', pk=pk)
 
 

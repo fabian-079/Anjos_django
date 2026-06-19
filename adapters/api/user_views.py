@@ -30,14 +30,15 @@ def user_create(request):
             address=request.POST.get('address', '').strip() or None,
             role=role,
         )
-        
-        # Enviar email de bienvenida (no bloquea la respuesta)
         _send_welcome_email(new_user.id)
-        
         messages.success(request, 'Usuario creado exitosamente.')
+        return redirect('user_index')
     except Exception as e:
         messages.error(request, f'Error: {e}')
-    return redirect('user_index')
+        return render(request, 'users/create.html', {
+            'roles': Role.objects.filter(is_active=True),
+            'form_data': dict(request.POST),
+        })
 
 @admin_required
 def user_edit_form(request, pk):
@@ -69,9 +70,15 @@ def user_update(request, pk):
             password=password,
         )
         messages.success(request, 'Usuario actualizado exitosamente.')
+        return redirect('user_index')
     except Exception as e:
         messages.error(request, f'Error: {e}')
-    return redirect('user_index')
+        user = uc.get_user_by_id(pk)
+        return render(request, 'users/edit.html', {
+            'user': user,
+            'roles': Role.objects.filter(is_active=True),
+            'form_data': dict(request.POST),
+        })
 
 @admin_required
 def user_delete(request, pk):

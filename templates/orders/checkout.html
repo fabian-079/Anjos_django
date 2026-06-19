@@ -351,47 +351,70 @@ document.querySelector('[name=shipping_address]').addEventListener('input', func
     document.getElementById('billing_address_hidden').value = this.value;
 });
 
-// Validación antes de enviar el formulario
+// Validación moderna antes de enviar el formulario
 document.getElementById('checkout-form').addEventListener('submit', function(e) {
+    function showCheckoutError(input, msg) {
+        var parent = input.closest('.col-12, .col-md-6, .col-md-4, .mb-3') || input.parentNode;
+        var existing = parent.querySelector('.checkout-error-msg');
+        if (existing) existing.remove();
+        input.classList.add('is-invalid');
+        var err = document.createElement('div');
+        err.className = 'checkout-error-msg small';
+        err.style.cssText = 'color:#c0392b;margin-top:4px;';
+        err.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>' + msg;
+        parent.appendChild(err);
+        input.focus();
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function clearCheckoutErrors() {
+        document.querySelectorAll('.checkout-error-msg').forEach(function(el) { el.remove(); });
+        document.querySelectorAll('#checkout-form .is-invalid').forEach(function(el) { el.classList.remove('is-invalid'); });
+    }
+
+    clearCheckoutErrors();
     var method = document.querySelector('input[name="payment_method"]:checked').value;
+
     if (method === 'PSE') {
-        var bank = document.querySelector('select[name="pse_bank"]').value;
-        var doc = document.querySelector('input[name="pse_user_legal_id"]').value.trim();
-        if (!bank) {
+        var bank = document.querySelector('select[name="pse_bank"]');
+        var doc = document.querySelector('input[name="pse_user_legal_id"]');
+        if (!bank.value) {
             e.preventDefault();
-            alert('Por favor selecciona un banco para PSE.');
+            showCheckoutError(bank, 'Por favor selecciona un banco para PSE.');
             return false;
         }
-        if (!doc) {
+        if (!doc.value.trim()) {
             e.preventDefault();
-            alert('Por favor ingresa tu número de documento para PSE.');
+            showCheckoutError(doc, 'Por favor ingresa tu número de documento para PSE.');
             return false;
         }
     }
     if (method === 'TARJETA') {
-        var cardNum = document.querySelector('input[name="card_number"]').value.trim().replace(/\s/g, '');
-        var cardHolder = document.querySelector('input[name="card_holder"]').value.trim();
-        var cardMonth = document.querySelector('input[name="card_exp_month"]').value.trim();
-        var cardYear = document.querySelector('input[name="card_exp_year"]').value.trim();
-        var cardCvc = document.querySelector('input[name="card_cvc"]').value.trim();
-        if (!cardNum || cardNum.length < 13) {
+        var cardNum = document.querySelector('input[name="card_number"]');
+        var cardHolder = document.querySelector('input[name="card_holder"]');
+        var cardMonth = document.querySelector('input[name="card_exp_month"]');
+        var cardYear = document.querySelector('input[name="card_exp_year"]');
+        var cardCvc = document.querySelector('input[name="card_cvc"]');
+        var numVal = cardNum.value.trim().replace(/\s/g, '');
+
+        if (!numVal || numVal.length < 13) {
             e.preventDefault();
-            alert('Por favor ingresa un número de tarjeta válido (16 dígitos).');
+            showCheckoutError(cardNum, 'Ingresa un número de tarjeta válido (16 dígitos).');
             return false;
         }
-        if (!cardHolder || cardHolder.length < 5) {
+        if (!cardHolder.value.trim() || cardHolder.value.trim().length < 5) {
             e.preventDefault();
-            alert('El nombre del titular debe tener al menos 5 caracteres (ej: Juan Perez).');
+            showCheckoutError(cardHolder, 'El nombre del titular debe tener al menos 5 caracteres.');
             return false;
         }
-        if (!cardMonth || cardMonth.length !== 2 || !cardYear || cardYear.length !== 2) {
+        if (!cardMonth.value.trim() || cardMonth.value.trim().length !== 2 ||
+            !cardYear.value.trim() || cardYear.value.trim().length !== 2) {
             e.preventDefault();
-            alert('Por favor ingresa la fecha de vencimiento completa (MM y AA).');
+            showCheckoutError(cardMonth, 'Ingresa la fecha de vencimiento completa (MM y AA).');
             return false;
         }
-        if (!cardCvc || cardCvc.length < 3) {
+        if (!cardCvc.value.trim() || cardCvc.value.trim().length < 3) {
             e.preventDefault();
-            alert('Por favor ingresa el código de seguridad (CVV) de 3 o 4 dígitos.');
+            showCheckoutError(cardCvc, 'Ingresa el código de seguridad (CVV) de 3 o 4 dígitos.');
             return false;
         }
     }

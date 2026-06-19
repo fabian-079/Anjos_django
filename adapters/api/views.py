@@ -48,6 +48,7 @@ def login_view(request):
 def register_view(request):
     if request.user.is_authenticated:
         return _redirect_by_role(request.user)
+    context = {}
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         email = request.POST.get('email', '').strip()
@@ -55,6 +56,12 @@ def register_view(request):
         password2 = request.POST.get('password2', '')
         phone = request.POST.get('phone', '').strip()
         address = request.POST.get('address', '').strip()
+
+        # Preserve values for re-rendering
+        context['name'] = name
+        context['email'] = email
+        context['phone'] = phone
+        context['address'] = address
 
         if not name or not email or not password:
             messages.error(request, 'Nombre, email y contraseña son requeridos.')
@@ -69,10 +76,7 @@ def register_view(request):
                     name=name, email=email, password=password,
                     phone=phone or None, address=address or None, role='cliente',
                 )
-                
-                # --- Enviar email de bienvenida (no bloquea el registro) ---
                 _send_welcome_email(new_user.id)
-                
                 user = authenticate(request, username=email, password=password)
                 if user:
                     login(request, user)
@@ -84,7 +88,7 @@ def register_view(request):
                     return redirect('dashboard_cliente')
             except ValueError as e:
                 messages.error(request, str(e))
-    return render(request, 'auth/register.html')
+    return render(request, 'auth/register.html', context)
 
 def logout_view(request):
     logout(request)
@@ -120,7 +124,7 @@ def profile_edit(request):
                 return redirect('dashboard_cliente')
             except ValueError as e:
                 messages.error(request, str(e))
-    return render(request, 'users/profile.html', {'user': user})
+    return render(request, 'users/profile.html', {'user': user, 'form_data': dict(request.POST)})
 
 def _merge_guest_session(request, user):
     try:

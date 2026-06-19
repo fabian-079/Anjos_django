@@ -15,19 +15,19 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Nombre completo</label>
-                            <input type="text" name="name" class="form-control" required placeholder="Tu nombre">
+                            <input type="text" name="name" class="form-control" required placeholder="Tu nombre" value="{{ name|default:'' }}">
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Correo electrónico</label>
-                            <input type="email" name="email" class="form-control" required placeholder="tucorreo@ejemplo.com">
+                            <input type="email" name="email" class="form-control" required placeholder="tucorreo@ejemplo.com" value="{{ email|default:'' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Teléfono</label>
-                            <input type="text" name="phone" class="form-control" placeholder="Opcional">
+                            <input type="text" name="phone" class="form-control" placeholder="Opcional" value="{{ phone|default:'' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Ciudad</label>
-                            <input type="text" name="address" class="form-control" placeholder="Tu ciudad">
+                            <input type="text" name="address" class="form-control" placeholder="Tu ciudad" value="{{ address|default:'' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Contraseña</label>

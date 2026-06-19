@@ -17,7 +17,7 @@
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Estado del pedido</label>
                             <select name="status" class="form-select">
                                 {% for value, label in status_choices %}
-                                <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
+                                <option value="{{ value }}" {% if form_data.status == value or order.status == value %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -25,25 +25,25 @@
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Método de pago</label>
                             <select name="payment_method" class="form-select">
                                 {% for value, label in payment_methods %}
-                                <option value="{{ value }}" {% if order.payment_method == value %}selected{% endif %}>{{ label }}</option>
+                                <option value="{{ value }}" {% if form_data.payment_method == value or order.payment_method == value %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Dirección de entrega</label>
-                            <input type="text" name="shipping_address" class="form-control" value="{{ order.shipping_address }}">
+                            <input type="text" name="shipping_address" class="form-control" value="{{ form_data.shipping_address|default:order.shipping_address }}">
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Dirección de facturación</label>
-                            <input type="text" name="billing_address" class="form-control" value="{{ order.billing_address }}">
+                            <input type="text" name="billing_address" class="form-control" value="{{ form_data.billing_address|default:order.billing_address }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Teléfono</label>
-                            <input type="text" name="phone" class="form-control" value="{{ order.phone|default:'' }}">
+                            <input type="text" name="phone" class="form-control" value="{{ form_data.phone|default:order.phone|default:'' }}">
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Notas</label>
-                            <textarea name="notes" class="form-control" rows="2">{{ order.notes|default:'' }}</textarea>
+                            <textarea name="notes" class="form-control" rows="2">{{ form_data.notes|default:order.notes|default:'' }}</textarea>
                         </div>
                         <div class="col-12 d-flex gap-2 mt-2">
                             <button type="submit" class="btn btn-gold flex-grow-1">Guardar cambios</button>

@@ -395,9 +395,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Toggle visibilidad de contraseña ---
     document.querySelectorAll('input[type="password"]').forEach(function (input) {
-        // Skip card CVC fields (payment, not password)
         if (input.name === 'card_cvc') return;
-        // Skip if already wrapped in input-group
         if (input.closest('.input-group')) return;
 
         var parent = input.parentNode;
@@ -429,6 +427,141 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    // --- Validación moderna de formularios ---
+    (function () {
+        function showError(input, message) {
+            var parent = input.closest('.col-12, .col-md-6, .col-md-4, .mb-3, .mb-4') || input.parentNode;
+            var existing = parent.querySelector('.form-error-msg');
+            if (existing) existing.remove();
+
+            input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
+
+            var errorDiv = document.createElement('div');
+            errorDiv.className = 'form-error-msg small';
+            errorDiv.style.cssText = 'color:#c0392b;margin-top:4px;';
+            errorDiv.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>' + message;
+            parent.appendChild(errorDiv);
+        }
+
+        function clearError(input) {
+            var parent = input.closest('.col-12, .col-md-6, .col-md-4, .mb-3, .mb-4') || input.parentNode;
+            var existing = parent.querySelector('.form-error-msg');
+            if (existing) existing.remove();
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        }
+
+        function validateField(input) {
+            var value = input.value.trim();
+            var name = input.name;
+
+            // Required
+            if (input.required && !value) {
+                showError(input, 'Este campo es obligatorio.');
+                return false;
+            }
+
+            // Email
+            if (input.type === 'email' && value) {
+                var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRe.test(value)) {
+                    showError(input, 'Ingresa un correo electrónico válido.');
+                    return false;
+                }
+            }
+
+            // Minlength
+            if (input.minLength > 0 && value.length < input.minLength) {
+                showError(input, 'Mínimo ' + input.minLength + ' caracteres.');
+                return false;
+            }
+
+            // Number min/max
+            if (input.type === 'number' && value !== '') {
+                var num = parseFloat(value);
+                if (input.min && num < parseFloat(input.min)) {
+                    showError(input, 'El valor mínimo es ' + input.min + '.');
+                    return false;
+                }
+                if (input.max && num > parseFloat(input.max)) {
+                    showError(input, 'El valor máximo es ' + input.max + '.');
+                    return false;
+                }
+            }
+
+            // Password match
+            if (name === 'password2') {
+                var pw1 = input.form.querySelector('input[name="password"]');
+                if (pw1 && pw1.value !== value) {
+                    showError(input, 'Las contraseñas no coinciden.');
+                    return false;
+                }
+            }
+
+            // URL
+            if (input.type === 'url' && value) {
+                var urlRe = /^https?:\/\/.+/;
+                if (!urlRe.test(value)) {
+                    showError(input, 'Ingresa una URL válida (comienza con http:// o https://).');
+                    return false;
+                }
+            }
+
+            // Phone (basic)
+            if (name === 'phone' && value) {
+                var digits = value.replace(/\D/g, '');
+                if (digits.length < 7) {
+                    showError(input, 'Ingresa un número de teléfono válido.');
+                    return false;
+                }
+            }
+
+            clearError(input);
+            return true;
+        }
+
+        // Validate on blur (when user leaves field)
+        document.querySelectorAll('input, select, textarea').forEach(function (input) {
+            input.addEventListener('blur', function () {
+                validateField(input);
+            });
+            // Clear error on input
+            input.addEventListener('input', function () {
+                if (input.classList.contains('is-invalid')) {
+                    validateField(input);
+                }
+            });
+        });
+
+        // Intercept form submission
+        document.querySelectorAll('form').forEach(function (form) {
+            // Skip forms that handle their own validation (like checkout)
+            if (form.id === 'checkout-form') return;
+
+            form.addEventListener('submit', function (e) {
+                var inputs = form.querySelectorAll('input, select, textarea');
+                var isValid = true;
+                var firstInvalid = null;
+
+                inputs.forEach(function (input) {
+                    if (!validateField(input)) {
+                        isValid = false;
+                        if (!firstInvalid) firstInvalid = input;
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault();
+                    if (firstInvalid) {
+                        firstInvalid.focus({ preventScroll: false });
+                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            });
+        });
+    })();
 });
 </script>
 {% block extra_js %}{% endblock %}

@@ -14,7 +14,7 @@
                     {% csrf_token %}
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Correo electrónico</label>
-                        <input type="email" name="email" class="form-control" required autofocus placeholder="tucorreo@ejemplo.com">
+                        <input type="email" name="email" class="form-control" required autofocus placeholder="tucorreo@ejemplo.com" value="{{ request.POST.email|default:'' }}">
                     </div>
                     <div class="mb-4">
                         <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Contraseña</label>

@@ -14,11 +14,11 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Nombre *</label>
-                            <input type="text" name="name" class="form-control" required>
+                            <input type="text" name="name" class="form-control" required value="{{ form_data.name|default:'' }}">
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Correo electrónico *</label>
-                            <input type="email" name="email" class="form-control" required>
+                            <input type="email" name="email" class="form-control" required value="{{ form_data.email|default:'' }}">
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Contraseña *</label>
@@ -26,17 +26,17 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Teléfono</label>
-                            <input type="text" name="phone" class="form-control">
+                            <input type="text" name="phone" class="form-control" value="{{ form_data.phone|default:'' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Rol</label>
                             <select name="role" class="form-select">
-                                {% for role in roles %}<option value="{{ role.name }}">{{ role.name }}</option>{% endfor %}
+                                {% for role in roles %}<option value="{{ role.name }}" {% if form_data.role == role.name %}selected{% endif %}>{{ role.name }}</option>{% endfor %}
                             </select>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Dirección</label>
-                            <input type="text" name="address" class="form-control">
+                            <input type="text" name="address" class="form-control" value="{{ form_data.address|default:'' }}">
                         </div>
                         <div class="col-12 d-flex gap-2 mt-2">
                             <button type="submit" class="btn btn-gold flex-grow-1">Guardar usuario</button>

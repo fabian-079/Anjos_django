@@ -19,15 +19,15 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Tu nombre *</label>
-                            <input type="text" name="customer_name" class="form-control" value="{{ user.name }}" required>
+                            <input type="text" name="customer_name" class="form-control" value="{{ form_data.customer_name|default:user.name }}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Teléfono de contacto *</label>
-                            <input type="text" name="phone" class="form-control" value="{{ user.phone|default:'' }}" required>
+                            <input type="text" name="phone" class="form-control" value="{{ form_data.phone|default:user.phone|default:'' }}" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Descripción de la pieza y el problema *</label>
-                            <textarea name="description" class="form-control" rows="4" required placeholder="Describe tu joya (tipo, material) y qué necesita reparación..."></textarea>
+                            <textarea name="description" class="form-control" rows="4" required placeholder="Describe tu joya (tipo, material) y qué necesita reparación...">{{ form_data.description|default:'' }}</textarea>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Foto de la pieza</label>
@@ -36,7 +36,7 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px">Comentarios adicionales</label>
-                            <textarea name="notes" class="form-control" rows="2" placeholder="Cualquier información relevante..."></textarea>
+                            <textarea name="notes" class="form-control" rows="2" placeholder="Cualquier información relevante...">{{ form_data.notes|default:'' }}</textarea>
                         </div>
                         <div class="col-12 d-flex gap-2 mt-2">
                             <button type="submit" class="btn btn-gold flex-grow-1">Enviar solicitud</button>
