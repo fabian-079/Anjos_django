@@ -110,6 +110,11 @@ def order_create(request):
             messages.error(request, 'Debes completar todos los datos de la tarjeta.')
             return redirect('checkout')
 
+        # Validar nombre del titular (Wompi exige minimo 5 caracteres)
+        if len(card_holder.strip()) < 5:
+            messages.error(request, 'El nombre del titular debe tener al menos 5 caracteres.')
+            return redirect('checkout')
+
         wompi_service = WompiService()
         if wompi_service.is_configured():
             # 1. Tokenizar la tarjeta
@@ -122,7 +127,7 @@ def order_create(request):
             )
             if not token_result['success']:
                 messages.error(request, f'Error con la tarjeta: {token_result["error"]}')
-                return redirect('checkout')
+                return redirect('order_show', pk=order.id)
 
             # 2. Crear la transaccion
             txn_result = wompi_service.create_card_transaction(
@@ -192,10 +197,10 @@ def order_create(request):
 
         if not bank_code:
             messages.error(request, 'Debes seleccionar un banco para PSE.')
-            return redirect('checkout')
+            return redirect('order_show', pk=order.id)
         if not user_legal_id:
             messages.error(request, 'Debes ingresar tu numero de documento para PSE.')
-            return redirect('checkout')
+            return redirect('order_show', pk=order.id)
 
         wompi_service = WompiService()
         if wompi_service.is_configured():

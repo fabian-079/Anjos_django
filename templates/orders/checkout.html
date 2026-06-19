@@ -144,7 +144,7 @@
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase" style="letter-spacing:.5px;font-size:.72rem">Número de tarjeta</label>
                             <div class="card-input">
-                                <input type="text" name="card_number" class="form-control" id="cardNumber" placeholder="0000  0000  0000  0000" maxlength="19" style="letter-spacing:2px;padding-right:48px" oninput="formatCard(this)">
+                                <input type="text" name="card_number" class="form-control" id="cardNumber" placeholder="0000  0000  0000  0000" maxlength="22" style="letter-spacing:2px;padding-right:48px" oninput="formatCard(this)">
                                 <span class="card-brand" id="cardBrand"><i class="bi bi-credit-card"></i></span>
                             </div>
                         </div>
@@ -376,22 +376,22 @@ document.getElementById('checkout-form').addEventListener('submit', function(e) 
         var cardCvc = document.querySelector('input[name="card_cvc"]').value.trim();
         if (!cardNum || cardNum.length < 13) {
             e.preventDefault();
-            alert('Por favor ingresa un número de tarjeta válido.');
+            alert('Por favor ingresa un número de tarjeta válido (16 dígitos).');
             return false;
         }
-        if (!cardHolder) {
+        if (!cardHolder || cardHolder.length < 5) {
             e.preventDefault();
-            alert('Por favor ingresa el nombre del titular de la tarjeta.');
+            alert('El nombre del titular debe tener al menos 5 caracteres (ej: Juan Perez).');
             return false;
         }
-        if (!cardMonth || !cardYear) {
+        if (!cardMonth || cardMonth.length !== 2 || !cardYear || cardYear.length !== 2) {
             e.preventDefault();
-            alert('Por favor ingresa la fecha de vencimiento de la tarjeta.');
+            alert('Por favor ingresa la fecha de vencimiento completa (MM y AA).');
             return false;
         }
-        if (!cardCvc) {
+        if (!cardCvc || cardCvc.length < 3) {
             e.preventDefault();
-            alert('Por favor ingresa el código de seguridad (CVV).');
+            alert('Por favor ingresa el código de seguridad (CVV) de 3 o 4 dígitos.');
             return false;
         }
     }
