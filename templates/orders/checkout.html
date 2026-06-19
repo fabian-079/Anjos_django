@@ -329,6 +329,20 @@ function showPayment(method) {
         var tab = document.getElementById('tab-' + m);
         tab.classList.toggle('selected', m === method);
     });
+
+    // Activar/quitar 'required' según el método visible para evitar errores de
+    // validación HTML5 en campos ocultos (Chrome no puede enfocarlos).
+    var cardFields = ['card_number', 'card_holder', 'card_exp_month', 'card_exp_year', 'card_cvc'];
+    cardFields.forEach(function(name) {
+        var input = document.querySelector('input[name="' + name + '"]');
+        if (input) input.required = (method === 'TARJETA');
+    });
+
+    var pseFields = ['pse_user_legal_id', 'pse_bank'];
+    pseFields.forEach(function(name) {
+        var input = document.querySelector('select[name="' + name + '"], input[name="' + name + '"]');
+        if (input) input.required = (method === 'PSE');
+    });
 }
 
 function formatCard(input) {
@@ -350,6 +364,9 @@ function formatExpiry(input) {
 document.querySelector('[name=shipping_address]').addEventListener('input', function() {
     document.getElementById('billing_address_hidden').value = this.value;
 });
+
+// Asegurar que los atributos required estén correctos desde la carga inicial
+showPayment('TARJETA');
 
 // Validación moderna antes de enviar el formulario
 document.getElementById('checkout-form').addEventListener('submit', function(e) {
