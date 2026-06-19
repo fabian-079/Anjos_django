@@ -135,12 +135,17 @@ def order_create(request):
             )
 
             if txn_result['success']:
+                # Guardar transaction_id para poder consultar despues
+                request.session['last_wompi_transaction_id'] = txn_result.get('transaction_id')
+                request.session['last_wompi_reference'] = txn_result.get('reference')
+
                 # Si requiere redireccion 3D Secure
                 if txn_result.get('redirect_url'):
                     return redirect(txn_result['redirect_url'])
 
                 # Si fue aprobada inmediatamente
-                if txn_result['status'] == 'APPROVED':
+                status = (txn_result.get('status') or '').upper()
+                if status in ('APPROVED', 'COMPLETED'):
                     try:
                         get_order_usecases().update_order_status(order.id, OrderStatus.PROCESSING)
                     except Exception:
@@ -150,12 +155,19 @@ def order_create(request):
                         f'Pago aprobado! Tu orden {order.order_number} esta en proceso.'
                     )
                     return render(request, 'orders/stripe_success.html', {'order': order})
+                elif status in ('DECLINED', 'REJECTED', 'VOIDED', 'ERROR'):
+                    messages.error(
+                        request,
+                        f'El pago fue rechazado (estado: {status}). '
+                        f'Intenta con otro metodo de pago o contacta a tu banco.'
+                    )
+                    return redirect('order_show', pk=order.id)
                 else:
-                    # Estado pendiente o rechazado
+                    # Estado PENDING u otro intermedio
                     messages.info(
                         request,
-                        f'Orden {order.order_number} creada. Estado del pago: {txn_result["status"]}. '
-                        f'Puedes verificar desde Mis Ordenes.'
+                        f'Orden {order.order_number} creada. El pago esta siendo procesado '
+                        f'(estado: {status}). Puedes verificar desde Mis Ordenes.'
                     )
                     return redirect('order_show', pk=order.id)
             else:
@@ -302,6 +314,47 @@ def order_pay_pse(request, pk):
     else:
         messages.error(request, f'No se pudo iniciar PSE: {result.get("error", "Error desconocido")}')
         return redirect('order_show', pk=pk)
+
+
+@login_required
+def order_check_card_status(request, pk):
+    """
+    Verificar el estado de una transaccion con tarjeta Wompi.
+    Se usa desde Mis Ordenes cuando el pago quedo en estado PENDING.
+    """
+    order = get_order_usecases().get_order_by_id(pk)
+    if not order:
+        messages.error(request, 'Orden no encontrada.')
+        return redirect('order_index')
+
+    if order.user_id != request.user.id and not request.user.is_admin():
+        messages.error(request, 'No tienes permiso.')
+        return redirect('order_index')
+
+    transaction_id = request.session.get('last_wompi_transaction_id')
+    if not transaction_id:
+        messages.info(request, 'No hay informacion de transaccion para verificar.')
+        return redirect('order_show', pk=pk)
+
+    wompi_service = WompiService()
+    result = wompi_service.get_transaction_status(transaction_id)
+
+    if result.get('success'):
+        status = (result.get('status') or '').upper()
+        if status in ('APPROVED', 'COMPLETED'):
+            try:
+                get_order_usecases().update_order_status(pk, OrderStatus.PROCESSING)
+            except Exception:
+                pass
+            messages.success(request, f'Pago confirmado! Tu orden {order.order_number} esta en proceso.')
+        elif status in ('DECLINED', 'REJECTED', 'VOIDED', 'ERROR'):
+            messages.error(request, f'El pago fue rechazado (estado: {status}).')
+        else:
+            messages.info(request, f'El pago sigue en proceso (estado: {status}). Intenta mas tarde.')
+    else:
+        messages.error(request, f'No se pudo consultar el estado: {result.get("error")}')
+
+    return redirect('order_show', pk=pk)
 
 
 @login_required

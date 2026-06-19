@@ -452,18 +452,30 @@ class WompiService:
             if resp.status_code in (200, 201):
                 transaction_data = data.get('data', {})
                 status = transaction_data.get('status')
+                transaction_id = transaction_data.get('id')
+                reference = transaction_data.get('reference')
 
-                # Si es 3D Secure, puede requerir redireccion
+                # Buscar URL de redireccion (3D Secure)
+                redirect_url = None
                 payment_method = transaction_data.get('payment_method', {})
                 extra = payment_method.get('extra', {}) if isinstance(payment_method, dict) else {}
-                redirect_url = extra.get('async_payment_url') if isinstance(extra, dict) else None
+                if isinstance(extra, dict):
+                    redirect_url = extra.get('async_payment_url') or extra.get('redirect_url')
+
+                # Si no hay redirect_url y el estado es PENDING, hacer polling breve
+                # por si Wompi sandbox tarda en generar la URL
+                if not redirect_url and status == 'PENDING' and transaction_id:
+                    poll = self._poll_async_payment_url(transaction_id, max_attempts=5, delay=1.0)
+                    if poll['found']:
+                        redirect_url = poll['async_url']
 
                 return {
                     'success': True,
-                    'transaction_id': transaction_data.get('id'),
+                    'transaction_id': transaction_id,
                     'status': status,
                     'redirect_url': redirect_url,
-                    'reference': transaction_data.get('reference'),
+                    'reference': reference,
+                    'raw_status': status,
                 }
             else:
                 error_msg = 'Error desconocido de Wompi'
